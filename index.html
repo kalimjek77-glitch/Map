@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Solar System – Ultra HD Planets & Sun</title>
+    <title>Solar System – HD Asteroids & Saturn Dust</title>
     <style>
         * {
             margin: 0;
@@ -173,40 +173,60 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         // ----- Config -----
-        const EARTH_RADIUS = 4.0;
-        const SUN_RADIUS = 6.5;
+        const EARTH_RADIUS = 5.0;
+        const SUN_RADIUS = 7.5;
 
         const ORBITS = {
-            mercury: 12,
-            venus: 18,
-            earth: 25,
-            mars: 32,
-            jupiter: 46,
-            saturn: 62,
-            uranus: 80,
-            neptune: 96,
+            mercury: 14,
+            venus: 20,
+            earth: 28,
+            mars: 36,
+            jupiter: 52,
+            saturn: 76,
+            uranus: 94,
+            neptune: 114,
         };
 
         const PLANET_SIZES = {
-            mercury: 0.55,
-            venus: 0.85,
+            mercury: 1.2,
+            venus: 3.0,
             earth: EARTH_RADIUS,
-            mars: 0.65,
-            jupiter: 2.8,
-            saturn: 2.4,
-            uranus: 1.6,
-            neptune: 1.4,
+            mars: 2.2,
+            jupiter: 8.5,
+            saturn: 7.0,
+            uranus: 3.8,
+            neptune: 3.5,
         };
 
         const SUN_ROTATION_SPEED = 0.0003;
-        const ORBIT_SPEED_BASE = 0.0005;
+        const ORBIT_SPEED_BASE = 0.0004;
 
         // ----- Scene Setup -----
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x05080f);
 
+        // ----- LIGHTS -----
+        const ambientLight = new THREE.AmbientLight(0x6688aa, 0.9);
+        scene.add(ambientLight);
+
+        const hemiLight = new THREE.HemisphereLight(0x6699ff, 0x223366, 0.6);
+        scene.add(hemiLight);
+
+        const sunLight = new THREE.PointLight(0xffeedd, 2.0, 0, 2);
+        sunLight.position.set(0, 0, 0);
+        scene.add(sunLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffeedd, 0.8);
+        dirLight.position.set(10, 20, 10);
+        scene.add(dirLight);
+
+        const fillLight = new THREE.DirectionalLight(0x4488cc, 0.3);
+        fillLight.position.set(-5, -10, -5);
+        scene.add(fillLight);
+
+        // ----- Camera -----
         const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 1200);
-        camera.position.set(20, 10, 35);
+        camera.position.set(30, 16, 55);
 
         const renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -216,7 +236,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.0;
+        renderer.toneMappingExposure = 1.2;
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.prepend(renderer.domElement);
@@ -227,8 +247,8 @@
         controls.dampingFactor = 0.08;
         controls.rotateSpeed = 0.5;
         controls.zoomSpeed = 0.8;
-        controls.minDistance = 4;
-        controls.maxDistance = 350;
+        controls.minDistance = 3;  // allow closer zoom for Earth close-up
+        controls.maxDistance = 400;
         controls.target.set(0, 0, 0);
         controls.update();
 
@@ -309,7 +329,6 @@
                     varying vec3 vNormal;
                     varying vec3 vPosition;
 
-                    // 3D noise
                     float hash(vec3 p) {
                         p = fract(p * 0.3183099 + .1);
                         p *= 17.0;
@@ -514,7 +533,7 @@
             } = options;
 
             const W = 4096,
-                H = 2048; // 4K resolution
+                H = 2048;
             const canvas = document.createElement('canvas');
             canvas.width = W;
             canvas.height = H;
@@ -531,7 +550,6 @@
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, W, H);
 
-            // Bands
             if (bands && bandColors.length > 0) {
                 for (let i = 0; i < 45; i++) {
                     const y = Math.random() * H;
@@ -565,7 +583,6 @@
                 }
             }
 
-            // Spots
             if (spots) {
                 for (let i = 0; i < spotCount; i++) {
                     const x = Math.random() * W;
@@ -591,7 +608,6 @@
                 }
             }
 
-            // Swirls
             if (swirls) {
                 for (let i = 0; i < swirlCount; i++) {
                     const x = Math.random() * W;
@@ -617,7 +633,6 @@
                 }
             }
 
-            // Craters
             if (craters) {
                 for (let i = 0; i < craterCount; i++) {
                     const x = Math.random() * W;
@@ -648,7 +663,6 @@
                 }
             }
 
-            // Dust
             if (dust) {
                 for (let i = 0; i < dustCount; i++) {
                     const x = Math.random() * W;
@@ -673,7 +687,6 @@
                 }
             }
 
-            // Clouds
             if (clouds) {
                 for (let i = 0; i < cloudCount; i++) {
                     const x = Math.random() * W;
@@ -698,7 +711,6 @@
                 }
             }
 
-            // Ice
             if (ice) {
                 for (let i = 0; i < iceCount; i++) {
                     const x = Math.random() * W;
@@ -712,7 +724,6 @@
                     ctx.fill();
                 }
                 for (let cap = 0; cap < 2; cap++) {
-                    const yBase = cap === 0 ? 0 : H;
                     const yCenter = cap === 0 ? 60 : H - 60;
                     for (let i = 0; i < 120; i++) {
                         const x = Math.random() * W;
@@ -728,7 +739,6 @@
                 }
             }
 
-            // Noise
             if (noise) {
                 const imageData = ctx.getImageData(0, 0, W, H);
                 const data = imageData.data;
@@ -751,7 +761,7 @@
             return texture;
         }
 
-        // ----- Create Planets with High-res Textures & High-poly Geometry -----
+        // ----- Create Planets -----
         const planets = {};
         const orbitLines = [];
         const planetMeshes = [];
@@ -779,6 +789,218 @@
             return line;
         }
 
+        // ----- ULTRA HD Saturn Ring Texture (4096x1024) with dust -----
+        function createSaturnRingTexture() {
+            const W = 4096;
+            const H = 1024;
+            const canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, W, H);
+
+            const innerColor = new THREE.Color(0xd4c09a);
+            const midColor = new THREE.Color(0xc8b88a);
+            const outerColor = new THREE.Color(0xb8a880);
+            const dustColor = new THREE.Color(0x887766);
+
+            // Ultra-detailed ring bands
+            const bandCount = 400;
+            for (let i = 0; i < bandCount; i++) {
+                const t = i / bandCount;
+                const x = t * W;
+
+                // Complex color gradient with multiple layers
+                let color = new THREE.Color().lerpColors(innerColor, midColor, t * 0.7);
+                if (t > 0.55) {
+                    color.lerp(outerColor, (t - 0.55) / 0.45);
+                }
+
+                // Add subtle warm/cool variation
+                const warmShift = Math.sin(t * 12 + 0.5) * 0.04 + 0.96;
+                color.multiplyScalar(warmShift);
+
+                // Density waves (multiple frequencies for natural look)
+                const density = 0.4 + 0.6 * (
+                    0.3 * Math.sin(t * 45 + 0.7) +
+                    0.25 * Math.sin(t * 110 + 2.3) +
+                    0.2 * Math.sin(t * 28 + 4.1) +
+                    0.15 * Math.sin(t * 200 + 1.5) +
+                    0.1 * Math.sin(t * 320 + 3.7)
+                ) * 0.5 + 0.5;
+
+                // Edge factor (rings are brighter in middle, thinner at edges)
+                const edgeFactor = 1 - Math.pow(Math.abs(t - 0.5) * 2.2, 4) * 0.4;
+                const opacity = 0.15 + 0.75 * density * edgeFactor;
+
+                // Cassini division (major gap)
+                let cassiniGap = 1;
+                if (t > 0.38 && t < 0.52) {
+                    cassiniGap = 0.1 + 0.9 * (1 - Math.abs(t - 0.45) / 0.07);
+                    cassiniGap = Math.min(1, cassiniGap * 1.5);
+                }
+
+                // Encke gap and other minor gaps
+                let enckeGap = 1;
+                const gaps = [0.62, 0.70, 0.78, 0.85, 0.92];
+                for (const g of gaps) {
+                    const dist = Math.abs(t - g);
+                    if (dist < 0.012) {
+                        enckeGap = Math.min(enckeGap, dist / 0.012 * 0.3 + 0.1);
+                    }
+                }
+
+                // Ringlets (fine structure)
+                const ringlet = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(t * 350 + 0.5));
+                const finalOpacity = opacity * cassiniGap * enckeGap * ringlet;
+
+                // Draw the band with smooth gradient vertically
+                const r = color.r * 255 | 0;
+                const g = color.g * 255 | 0;
+                const b = color.b * 255 | 0;
+                const alpha = Math.min(0.95, finalOpacity * 0.9);
+
+                // Vertical variation for dust
+                for (let y = 0; y < H; y++) {
+                    const yPos = y / H;
+                    const verticalDensity = 1 - Math.pow(Math.abs(yPos - 0.5) * 2, 2) * 0.7;
+                    const vAlpha = alpha * verticalDensity;
+                    ctx.fillStyle = `rgba(${r},${g},${b},${vAlpha})`;
+                    ctx.fillRect(x, y, 1, 1);
+                }
+
+                // Add dust particles (tiny specks)
+                if (i % 2 === 0 && Math.random() > 0.7) {
+                    const dustCount = 2 + Math.random() * 6;
+                    for (let d = 0; d < dustCount; d++) {
+                        const dy = Math.random() * H;
+                        const dr = dustColor.r * 255 | 0;
+                        const dg = dustColor.g * 255 | 0;
+                        const db = dustColor.b * 255 | 0;
+                        const da = 0.02 + Math.random() * 0.08;
+                        ctx.fillStyle = `rgba(${dr},${dg},${db},${da})`;
+                        ctx.fillRect(x + (Math.random() - 0.5) * 3, dy, 1 + Math.random() * 2, 1 + Math.random() * 2);
+                    }
+                }
+            }
+
+            // Extra dust layer - random particles throughout
+            for (let i = 0; i < 8000; i++) {
+                const x = Math.random() * W;
+                const y = Math.random() * H;
+                const size = 0.5 + Math.random() * 2;
+                const alpha = 0.01 + Math.random() * 0.04;
+                const brightness = 100 + Math.random() * 100;
+                ctx.fillStyle = `rgba(${brightness},${brightness-20|0},${brightness-40|0},${alpha})`;
+                ctx.fillRect(x, y, size, size);
+            }
+
+            // Vertical streak artifacts (like Cassini images)
+            for (let i = 0; i < 60; i++) {
+                const x = Math.random() * W;
+                const y = Math.random() * H;
+                const w = 1 + Math.random() * 4;
+                const h = 10 + Math.random() * 50;
+                const alpha = 0.005 + Math.random() * 0.02;
+                ctx.fillStyle = `rgba(160,140,120,${alpha})`;
+                ctx.fillRect(x, y, w, h);
+            }
+
+            // Shadow gradient for lighting
+            const shadowGrad = ctx.createLinearGradient(0, 0, W, 0);
+            shadowGrad.addColorStop(0, 'rgba(0,0,0,0.15)');
+            shadowGrad.addColorStop(0.15, 'rgba(0,0,0,0)');
+            shadowGrad.addColorStop(0.5, 'rgba(0,0,0,0)');
+            shadowGrad.addColorStop(0.75, 'rgba(0,0,0,0.05)');
+            shadowGrad.addColorStop(1, 'rgba(0,0,0,0.15)');
+            ctx.fillStyle = shadowGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.generateMipmaps = true;
+            return texture;
+        }
+
+        // ----- SATURN DUST PARTICLES (realistic 3D dust with varied colors) -----
+        function createSaturnDust() {
+            const count = 15000;
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+            const sizes = new Float32Array(count);
+
+            const saturnRadius = PLANET_SIZES.saturn;
+            const innerRing = saturnRadius * 1.1;
+            const outerRing = saturnRadius * 2.8;
+
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = innerRing + Math.random() * (outerRing - innerRing);
+                const height = (Math.random() - 0.5) * saturnRadius * 0.6;
+
+                const x = radius * Math.cos(angle);
+                const z = radius * Math.sin(angle);
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = height;
+                positions[i * 3 + 2] = z;
+
+                // Varied dust colors: warm gold, cool gray, reddish
+                const t = (radius - innerRing) / (outerRing - innerRing);
+                const brightness = 0.3 + 0.7 * (1 - Math.abs(height) / (saturnRadius * 0.3));
+
+                let r, g, b;
+                const colorChoice = Math.random();
+                if (colorChoice < 0.4) {
+                    // Warm gold / yellow
+                    r = 200 + Math.random() * 55;
+                    g = 170 + Math.random() * 50;
+                    b = 100 + Math.random() * 40;
+                } else if (colorChoice < 0.7) {
+                    // Gray / neutral
+                    const base = 140 + Math.random() * 80;
+                    r = base + (Math.random() - 0.5) * 30;
+                    g = base + (Math.random() - 0.5) * 20;
+                    b = base + (Math.random() - 0.5) * 20;
+                } else {
+                    // Reddish / brown
+                    r = 180 + Math.random() * 60;
+                    g = 100 + Math.random() * 50;
+                    b = 60 + Math.random() * 40;
+                }
+
+                colors[i * 3] = (r / 255) * brightness;
+                colors[i * 3 + 1] = (g / 255) * brightness;
+                colors[i * 3 + 2] = (b / 255) * brightness;
+
+                sizes[i] = 0.02 + Math.random() * 0.08;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.06,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.7,
+                sizeAttenuation: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                opacity: 0.6,
+            });
+
+            const particles = new THREE.Points(geometry, material);
+            return particles;
+        }
+
         function createPlanet(name, radius, orbitRadius, color, options = {}) {
             const {
                 bands = false,
@@ -799,10 +1021,11 @@
                     iceCount = 0,
                     emissive = false,
                     emissiveColor = null,
+                    emissiveIntensity = 0.15,
                     rings = false,
                     ringColor = '#c8b88a',
-                    ringInner = 1.3,
-                    ringOuter = 2.2,
+                    ringInner = 1.2,
+                    ringOuter = 2.6,
                     tilt = 0,
                     roughness = 0.7,
                     metalness = 0.05,
@@ -831,11 +1054,11 @@
                 map: tex,
                 roughness: roughness,
                 metalness: metalness,
-                emissive: emissive ? new THREE.Color(emissiveColor) : new THREE.Color(0x000000),
-                emissiveIntensity: emissive ? 0.08 : 0,
+                emissive: emissive ? new THREE.Color(emissiveColor) : new THREE.Color(0x112233),
+                emissiveIntensity: emissive ? emissiveIntensity : 0.1,
             });
 
-            const geom = new THREE.SphereGeometry(radius, 128, 128); // High-poly
+            const geom = new THREE.SphereGeometry(radius, 128, 128);
             const mesh = new THREE.Mesh(geom, mat);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -850,59 +1073,36 @@
             scene.add(mesh);
 
             let ringMesh = null;
+            let dustParticles = null;
+
             if (rings) {
-                const ringGeo = new THREE.RingGeometry(
-                    radius * ringInner,
-                    radius * ringOuter,
-                    128
-                );
-                const ringTex = (() => {
-                    const c = document.createElement('canvas');
-                    c.width = 1024;
-                    c.height = 128;
-                    const ctx2 = c.getContext('2d');
-                    const col = new THREE.Color(ringColor);
-                    for (let x = 0; x < 1024; x++) {
-                        const v = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(x * 0.04 + 0.7) *
-                            0.4 + 0.5 * Math.sin(x * 0.09 + 2.1) * 0.2);
-                        const bright = 0.25 + v * 0.7;
-                        const r = col.r * bright * 255 | 0;
-                        const g = col.g * bright * 255 | 0;
-                        const b = col.b * bright * 255 | 0;
-                        const alpha = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(x * 0.06 + 0.3));
-                        ctx2.fillStyle = `rgba(${r},${g},${b},${alpha})`;
-                        ctx2.fillRect(x, 0, 1, 128);
-                    }
-                    for (let i = 0; i < 12; i++) {
-                        const x = 30 + Math.random() * 900;
-                        const w = 4 + Math.random() * 12;
-                        ctx2.fillStyle = `rgba(0,0,0,${0.15+Math.random()*0.35})`;
-                        ctx2.fillRect(x, 0, w, 128);
-                    }
-                    for (let i = 0; i < 200; i++) {
-                        const x = Math.random() * 1024;
-                        const y = Math.random() * 128;
-                        const w = 2 + Math.random() * 30;
-                        const h = 2 + Math.random() * 10;
-                        const col2 = new THREE.Color(ringColor).multiplyScalar(0.7 + Math.random() * 0.6);
-                        ctx2.fillStyle =
-                            `rgba(${col2.r*255|0},${col2.g*255|0},${col2.b*255|0},${0.03+Math.random()*0.08})`;
-                        ctx2.fillRect(x, y, w, h);
-                    }
-                    return new THREE.CanvasTexture(c);
-                })();
+                const ringTex = createSaturnRingTexture();
 
                 const ringMat = new THREE.MeshBasicMaterial({
                     map: ringTex,
                     side: THREE.DoubleSide,
                     transparent: true,
-                    opacity: 0.85,
+                    opacity: 1.0,
                     depthWrite: false,
+                    color: 0xffffff,
                 });
+
+                const ringGeo = new THREE.RingGeometry(
+                    radius * ringInner,
+                    radius * ringOuter,
+                    512
+                );
                 ringMesh = new THREE.Mesh(ringGeo, ringMat);
-                ringMesh.rotation.x = Math.PI / 2.2 + tilt;
+                // Tilted diagonally: PI/2 + 0.4 rad (~23 deg) for a nice slant
+                ringMesh.rotation.x = Math.PI / 2 + 0.4;
                 ringMesh.position.copy(mesh.position);
                 scene.add(ringMesh);
+
+                // Dust particles follow same tilt
+                dustParticles = createSaturnDust();
+                dustParticles.position.copy(mesh.position);
+                dustParticles.rotation.x = Math.PI / 2 + 0.4;
+                scene.add(dustParticles);
             }
 
             const orbitColor = new THREE.Color(color).multiplyScalar(1.6);
@@ -911,6 +1111,7 @@
             const data = {
                 mesh,
                 ringMesh,
+                dustParticles,
                 orbitLine,
                 orbitRadius,
                 radius,
@@ -928,9 +1129,7 @@
             return data;
         }
 
-        // ----- Build Planets with Ultra HD textures -----
-
-        // Mercury
+        // ----- Build Planets -----
         createPlanet('mercury', PLANET_SIZES.mercury, ORBITS.mercury, '#b0b0b0', {
             craters: true,
             craterCount: 400,
@@ -938,9 +1137,11 @@
             noiseAmount: 0.12,
             roughness: 0.9,
             metalness: 0.1,
+            emissive: true,
+            emissiveColor: '#445566',
+            emissiveIntensity: 0.15,
         });
 
-        // Venus
         createPlanet('venus', PLANET_SIZES.venus, ORBITS.venus, '#e8cda0', {
             swirls: true,
             swirlCount: 400,
@@ -950,9 +1151,11 @@
             noiseAmount: 0.04,
             roughness: 0.6,
             metalness: 0.05,
+            emissive: true,
+            emissiveColor: '#886644',
+            emissiveIntensity: 0.18,
         });
 
-        // Mars
         createPlanet('mars', PLANET_SIZES.mars, ORBITS.mars, '#c1440e', {
             craters: true,
             craterCount: 300,
@@ -964,9 +1167,11 @@
             iceCount: 100,
             roughness: 0.85,
             metalness: 0.05,
+            emissive: true,
+            emissiveColor: '#663322',
+            emissiveIntensity: 0.15,
         });
 
-        // Jupiter
         createPlanet('jupiter', PLANET_SIZES.jupiter, ORBITS.jupiter, '#d4a06a', {
             bands: true,
             bandColors: ['#d4a06a', '#c89050', '#e8c090', '#b07840', '#f0d8b0', '#a06830', '#d8b080'],
@@ -976,22 +1181,27 @@
             noiseAmount: 0.03,
             roughness: 0.5,
             metalness: 0.05,
+            emissive: true,
+            emissiveColor: '#443322',
+            emissiveIntensity: 0.12,
         });
 
-        // Saturn
+        // Saturn with tilted ring and varied dust
         createPlanet('saturn', PLANET_SIZES.saturn, ORBITS.saturn, '#dac48e', {
             bands: true,
             bandColors: ['#dac48e', '#c8b078', '#e8d8a0', '#b09860', '#f0e0b0', '#c0a870'],
             rings: true,
             ringColor: '#d4c09a',
-            ringInner: 1.25,
-            ringOuter: 2.5,
+            ringInner: 1.2,
+            ringOuter: 2.8,
             tilt: 0.4,
             roughness: 0.5,
             metalness: 0.05,
+            emissive: true,
+            emissiveColor: '#443322',
+            emissiveIntensity: 0.12,
         });
 
-        // Uranus
         createPlanet('uranus', PLANET_SIZES.uranus, ORBITS.uranus, '#7ec8e3', {
             swirls: true,
             swirlCount: 350,
@@ -1004,9 +1214,11 @@
             tilt: 1.6,
             roughness: 0.4,
             metalness: 0.1,
+            emissive: true,
+            emissiveColor: '#335577',
+            emissiveIntensity: 0.18,
         });
 
-        // Neptune
         createPlanet('neptune', PLANET_SIZES.neptune, ORBITS.neptune, '#3e54e8', {
             swirls: true,
             swirlCount: 380,
@@ -1016,9 +1228,336 @@
             noiseAmount: 0.04,
             roughness: 0.4,
             metalness: 0.1,
+            emissive: true,
+            emissiveColor: '#224488',
+            emissiveIntensity: 0.2,
         });
 
-        // ----- Earth (with custom shader & borders) -----
+        // ----- DETAILED ASTEROID SYSTEM (dark, varied, realistic) -----
+        const asteroids = [];
+
+        function createDetailedAsteroid(size, detailLevel) {
+            const types = ['icosahedron', 'dodecahedron', 'octahedron', 'box'];
+            const type = types[Math.floor(Math.random() * types.length)];
+
+            let geometry;
+            const s = size;
+            const detail = Math.max(2, detailLevel + 1);
+
+            switch (type) {
+                case 'icosahedron':
+                    geometry = new THREE.IcosahedronGeometry(s, detail);
+                    break;
+                case 'dodecahedron':
+                    geometry = new THREE.DodecahedronGeometry(s, detail);
+                    break;
+                case 'octahedron':
+                    geometry = new THREE.OctahedronGeometry(s, detail);
+                    break;
+                case 'box':
+                default:
+                    const w = s * (0.6 + Math.random() * 0.8);
+                    const h = s * (0.5 + Math.random() * 0.9);
+                    const d = s * (0.4 + Math.random() * 0.9);
+                    geometry = new THREE.BoxGeometry(w, h, d, detail, detail, detail);
+                    break;
+            }
+
+            const pos = geometry.attributes.position;
+            const vertex = new THREE.Vector3();
+
+            const displacementStrength = 0.35 + Math.random() * 0.65;
+
+            // Displacement
+            for (let i = 0; i < pos.count; i++) {
+                vertex.fromBufferAttribute(pos, i);
+                const len = vertex.length();
+                if (len > 0.001) {
+                    const nx = vertex.x / s;
+                    const ny = vertex.y / s;
+                    const nz = vertex.z / s;
+                    const noise1 = Math.sin(nx * 5.3 + ny * 7.1 + nz * 3.7) * 0.3 +
+                        Math.cos(nx * 9.7 + ny * 4.3 + nz * 8.1) * 0.2 +
+                        Math.sin(nx * 12.1 + ny * 6.7 + nz * 10.3) * 0.15;
+                    const noise2 = Math.sin(nx * 7.7 + ny * 3.3 + nz * 5.9) * 0.25 +
+                        Math.cos(nx * 4.1 + ny * 8.9 + nz * 6.7) * 0.2;
+
+                    const combinedNoise = noise1 * 0.6 + noise2 * 0.4;
+                    const displacement = 1 + combinedNoise * displacementStrength * 0.5;
+                    vertex.multiplyScalar(displacement);
+                    pos.setXYZ(i, vertex.x, vertex.y, vertex.z);
+                }
+            }
+
+            // Craters
+            const craterCount = 4 + Math.floor(Math.random() * 8);
+            const craterPositions = [];
+            for (let c = 0; c < craterCount; c++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const radius = size * (0.2 + Math.random() * 0.5);
+                craterPositions.push({
+                    x: radius * Math.sin(phi) * Math.cos(theta),
+                    y: radius * Math.cos(phi),
+                    z: radius * Math.sin(phi) * Math.sin(theta),
+                    depth: 0.15 + Math.random() * 0.45,
+                    radius: 0.15 + Math.random() * 0.35,
+                });
+            }
+
+            for (let i = 0; i < pos.count; i++) {
+                vertex.fromBufferAttribute(pos, i);
+                for (const crater of craterPositions) {
+                    const dx = vertex.x - crater.x;
+                    const dy = vertex.y - crater.y;
+                    const dz = vertex.z - crater.z;
+                    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                    const craterRadius = size * crater.radius;
+                    if (dist < craterRadius) {
+                        const influence = 1 - dist / craterRadius;
+                        const pushIn = influence * crater.depth * size * 0.4;
+                        const dir = vertex.clone().normalize();
+                        vertex.sub(dir.multiplyScalar(pushIn));
+                        pos.setXYZ(i, vertex.x, vertex.y, vertex.z);
+                    }
+                }
+            }
+
+            // Ridges
+            for (let i = 0; i < pos.count; i++) {
+                vertex.fromBufferAttribute(pos, i);
+                const len = vertex.length();
+                if (len > 0.001) {
+                    const nx = vertex.x / len;
+                    const ny = vertex.y / len;
+                    const nz = vertex.z / len;
+                    const ridge = Math.sin(nx * 14.0 + ny * 9.0 + nz * 11.0) * 0.08 +
+                        Math.cos(nx * 18.0 + nz * 13.0) * 0.06 +
+                        Math.sin(ny * 16.0 + nz * 10.0 + nx * 7.0) * 0.07;
+                    const factor = 1 + ridge * 0.3;
+                    vertex.multiplyScalar(factor);
+                    pos.setXYZ(i, vertex.x, vertex.y, vertex.z);
+                }
+            }
+
+            geometry.computeVertexNormals();
+            return geometry;
+        }
+
+        function createAsteroidTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+
+            // Dark, realistic colors: dark grey, charcoal, some lighter, some reddish/orange (fire)
+            const colorType = Math.random();
+            let r, g, b;
+            if (colorType < 0.4) {
+                // Dark gray / charcoal
+                const base = 30 + Math.random() * 50;
+                r = base + (Math.random() - 0.5) * 20;
+                g = base + (Math.random() - 0.5) * 15;
+                b = base + (Math.random() - 0.5) * 15;
+            } else if (colorType < 0.7) {
+                // Medium dark gray
+                const base = 60 + Math.random() * 60;
+                r = base + (Math.random() - 0.5) * 30;
+                g = base + (Math.random() - 0.5) * 25;
+                b = base + (Math.random() - 0.5) * 25;
+            } else if (colorType < 0.9) {
+                // Light gray / brownish
+                const base = 100 + Math.random() * 80;
+                r = base + (Math.random() - 0.5) * 30;
+                g = base + (Math.random() - 0.5) * 20;
+                b = base + (Math.random() - 0.5) * 20;
+            } else {
+                // Fiery reddish/orange
+                r = 180 + Math.random() * 60;
+                g = 80 + Math.random() * 50;
+                b = 20 + Math.random() * 30;
+            }
+
+            ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`;
+            ctx.fillRect(0, 0, 1024, 1024);
+
+            // Noise
+            for (let i = 0; i < 3000; i++) {
+                const x = Math.random() * 1024;
+                const y = Math.random() * 1024;
+                const radius = 0.5 + Math.random() * 4;
+                const brightness = 0.2 + Math.random() * 0.8;
+                const col = (r + g + b) / 3 * brightness;
+                const alpha = 0.1 + Math.random() * 0.4;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${col|0},${col|0},${col|0},${alpha})`;
+                ctx.fill();
+            }
+
+            // Craters
+            const craterCount = 12 + Math.floor(Math.random() * 25);
+            for (let i = 0; i < craterCount; i++) {
+                const x = Math.random() * 1024;
+                const y = Math.random() * 1024;
+                const radius = 4 + Math.random() * 35;
+                const brightness = 0.15 + Math.random() * 0.4;
+                const col = (r + g + b) / 3 * brightness;
+
+                ctx.beginPath();
+                ctx.arc(x + radius * 0.2, y + radius * 0.15, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0,0,0,${0.15+Math.random()*0.25})`;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${col|0},${col|0},${col|0},${0.4+Math.random()*0.4})`;
+                ctx.fill();
+
+                if (Math.random() > 0.3) {
+                    ctx.beginPath();
+                    ctx.arc(x - radius * 0.25, y - radius * 0.3, radius * 0.85, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255,255,240,${0.04+Math.random()*0.12})`;
+                    ctx.lineWidth = 1.5 + Math.random() * 2;
+                    ctx.stroke();
+                }
+
+                if (Math.random() > 0.5) {
+                    ctx.beginPath();
+                    ctx.arc(x + radius * 0.1, y + radius * 0.1, radius * 0.4, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(200,180,160,${0.02+Math.random()*0.06})`;
+                    ctx.fill();
+                }
+            }
+
+            // Streaks
+            for (let i = 0; i < 30; i++) {
+                const x = Math.random() * 1024;
+                const y = Math.random() * 1024;
+                const w = 5 + Math.random() * 50;
+                const h = 0.5 + Math.random() * 3;
+                const angle = Math.random() * Math.PI * 2;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                ctx.fillStyle = `rgba(0,0,0,${0.04+Math.random()*0.12})`;
+                ctx.fillRect(-w / 2, -h / 2, w, h);
+                ctx.restore();
+            }
+
+            // Surface bumps
+            for (let i = 0; i < 150; i++) {
+                const x = Math.random() * 1024;
+                const y = Math.random() * 1024;
+                const radius = 2 + Math.random() * 10;
+                const brightness = 0.5 + Math.random() * 0.5;
+                const col = (r + g + b) / 3 * brightness;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${col|0},${col|0},${col|0},${0.05+Math.random()*0.12})`;
+                ctx.fill();
+            }
+
+            const grad = ctx.createRadialGradient(300, 300, 50, 512, 512, 600);
+            grad.addColorStop(0, `rgba(255,255,255,${0.02+Math.random()*0.03})`);
+            grad.addColorStop(0.5, `rgba(0,0,0,0)`);
+            grad.addColorStop(1, `rgba(0,0,0,${0.05+Math.random()*0.08})`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 1024, 1024);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.generateMipmaps = true;
+            return texture;
+        }
+
+        function createAsteroidSystem() {
+            const totalAsteroids = 1200;
+            const asteroidTextures = [];
+            for (let i = 0; i < 15; i++) {
+                asteroidTextures.push(createAsteroidTexture());
+            }
+
+            // Zones – none near Earth
+            const zones = [
+                { inner: 40, outer: 54, count: 500, sizeMin: 0.08, sizeMax: 1.2, height: 2.5 },
+                { inner: 56, outer: 74, count: 300, sizeMin: 0.06, sizeMax: 1.0, height: 3.0 },
+                { inner: 80, outer: 96, count: 200, sizeMin: 0.05, sizeMax: 0.8, height: 3.5 },
+                { inner: 98, outer: 116, count: 150, sizeMin: 0.04, sizeMax: 0.7, height: 4.0 },
+            ];
+
+            for (const zone of zones) {
+                for (let i = 0; i < zone.count; i++) {
+                    let size;
+                    const r = Math.random();
+                    if (r < 0.5) {
+                        size = zone.sizeMin + Math.random() * (zone.sizeMax - zone.sizeMin) * 0.3;
+                    } else if (r < 0.8) {
+                        size = zone.sizeMin + Math.random() * (zone.sizeMax - zone.sizeMin) * 0.6;
+                    } else if (r < 0.95) {
+                        size = zone.sizeMin + Math.random() * (zone.sizeMax - zone.sizeMin) * 0.85;
+                    } else {
+                        size = zone.sizeMin + Math.random() * (zone.sizeMax - zone.sizeMin) * 1.0;
+                    }
+
+                    const radius = zone.inner + Math.random() * (zone.outer - zone.inner);
+                    const angle = Math.random() * Math.PI * 2;
+                    const inclination = (Math.random() - 0.5) * zone.height;
+
+                    let detail = 2 + Math.floor(Math.random() * 2);
+
+                    const geometry = createDetailedAsteroid(size, detail);
+                    const tex = asteroidTextures[Math.floor(Math.random() * asteroidTextures.length)];
+
+                    const material = new THREE.MeshStandardMaterial({
+                        map: tex,
+                        roughness: 0.65 + Math.random() * 0.35,
+                        metalness: 0.05 + Math.random() * 0.25,
+                        emissive: new THREE.Color(0x111111),
+                        emissiveIntensity: 0.03,
+                        flatShading: false,
+                    });
+
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+
+                    const x = radius * Math.cos(angle);
+                    const z = radius * Math.sin(angle);
+                    mesh.position.set(x, inclination, z);
+
+                    mesh.rotation.set(
+                        Math.random() * Math.PI * 2,
+                        Math.random() * Math.PI * 2,
+                        Math.random() * Math.PI * 2
+                    );
+
+                    scene.add(mesh);
+
+                    asteroids.push({
+                        mesh,
+                        radius,
+                        angle,
+                        inclination,
+                        speed: (0.00004 + Math.random() * 0.0003) * (1 / (radius * 0.02 + 0.2)),
+                        rotSpeed: new THREE.Vector3(
+                            (Math.random() - 0.5) * 0.02,
+                            (Math.random() - 0.5) * 0.02,
+                            (Math.random() - 0.5) * 0.02
+                        ),
+                        size: size,
+                    });
+                }
+            }
+        }
+
+        createAsteroidSystem();
+
+        // ----- Earth -----
         let earthUniforms = null;
         let earthMesh = null;
         let earthPosition = new THREE.Vector3(ORBITS.earth, 0, 0);
@@ -1041,7 +1580,6 @@
 
             ctx.drawImage(img, 0, 0, W, H);
 
-            // Borders
             try {
                 const geoResp = await fetch(
                     'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
@@ -1090,7 +1628,6 @@
                     if (feature.geometry) drawFeature(feature.geometry);
                 }
 
-                // Graticule
                 ctx.strokeStyle = 'rgba(100, 150, 200, 0.05)';
                 ctx.lineWidth = 0.5;
                 for (let lat = -90; lat <= 90; lat += 30) {
@@ -1146,21 +1683,21 @@
                         vec4 texColor = texture2D(earthTexture, vUv);
                         vec3 normal = normalize(vNormal);
                         float sunIntensity = dot(normal, normalize(sunDirection));
-                        float dayFactor = smoothstep(-0.15, 0.45, sunIntensity);
-
-                        vec3 nightCol = nightColor * nightBrightness;
-                        nightCol += ambientColor * 0.15;
+                        float dayFactor = smoothstep(-0.1, 0.3, sunIntensity);
 
                         vec3 dayCol = texColor.rgb * dayColor;
+
+                        vec3 nightCol = texColor.rgb * nightColor * nightBrightness;
+                        nightCol += texColor.rgb * ambientColor * 0.4;
 
                         vec3 finalColor = mix(nightCol, dayCol, dayFactor);
 
                         float rim = 1.0 - abs(sunIntensity);
-                        float cityGlow = smoothstep(0.2, 0.7, rim) * 0.06;
-                        finalColor += vec3(0.6, 0.5, 0.2) * cityGlow * nightBrightness;
+                        float cityGlow = smoothstep(0.1, 0.8, rim) * 0.05;
+                        finalColor += vec3(0.8, 0.7, 0.4) * cityGlow * nightBrightness;
 
-                        float terminatorGlow = exp(-pow(abs(sunIntensity) / 0.3, 2.0)) * 0.035;
-                        finalColor += vec3(0.3, 0.5, 0.8) * terminatorGlow;
+                        float terminatorGlow = exp(-pow(abs(sunIntensity) / 0.25, 2.0)) * 0.04;
+                        finalColor += vec3(0.4, 0.6, 0.9) * terminatorGlow;
 
                         gl_FragColor = vec4(finalColor, 1.0);
                     }
@@ -1169,10 +1706,10 @@
             const uniforms = {
                 earthTexture: { value: texture },
                 sunDirection: { value: new THREE.Vector3(1, 0.3, 0.5).normalize() },
-                nightColor: { value: new THREE.Color(0x050a18) },
+                nightColor: { value: new THREE.Color(0x6688aa) },
                 dayColor: { value: new THREE.Color(1, 1, 1) },
-                ambientColor: { value: new THREE.Color(0x223355) },
-                nightBrightness: { value: 0.45 },
+                ambientColor: { value: new THREE.Color(0x8899bb) },
+                nightBrightness: { value: 1.0 },
             };
 
             const material = new THREE.ShaderMaterial({
@@ -1247,7 +1784,6 @@
             scene.add(atmMesh);
             planets.earth.atmosphere = atmMesh;
 
-            // Outer glow
             const outVert = `
                     varying vec3 vNormal;
                     void main() {
@@ -1300,7 +1836,8 @@
         function flyToEarth() {
             if (!earthMesh) return;
             const earthPos = earthMesh.position.clone();
-            const offset = new THREE.Vector3(5.5, 3.5, 9);
+            // Tighter offset for a close-up where Earth fills the screen
+            const offset = new THREE.Vector3(2.5, 1.5, 5.0);
             const targetPos = earthPos.clone().add(offset);
 
             animStartPos.copy(camera.position);
@@ -1326,7 +1863,7 @@
         const labelEl = document.getElementById('planet-label');
 
         function updateLabel(distToEarth) {
-            const threshold = 30;
+            const threshold = 35;
             if (distToEarth < threshold) {
                 labelEl.textContent = '✦ Earth';
                 labelEl.style.opacity = '1';
@@ -1347,7 +1884,7 @@
                 if (sunDist < closestDist && sunDist < 40) {
                     labelEl.textContent = '✦ Sun';
                     labelEl.style.opacity = '0.8';
-                } else if (closest && closestDist < 55) {
+                } else if (closest && closestDist < 60) {
                     const names = {
                         mercury: '☿ Mercury',
                         venus: '♀ Venus',
@@ -1387,7 +1924,7 @@
                 if (earthMesh) {
                     const ep = earthMesh.position.clone();
                     controls.target.copy(ep);
-                    camera.position.set(ep.x + 10, ep.y + 5, ep.z + 16);
+                    camera.position.set(ep.x + 12, ep.y + 6, ep.z + 18);
                     controls.update();
                 }
                 animate();
@@ -1409,6 +1946,7 @@
                 sunObj.corona.material.rotation += 0.0003;
             }
 
+            // Update planets
             for (const name in planets) {
                 const data = planets[name];
                 if (!data || !data.mesh) continue;
@@ -1445,11 +1983,29 @@
                     data.ringMesh.position.copy(data.mesh.position);
                     data.ringMesh.rotation.z += 0.001;
                 }
+
+                if (data.dustParticles) {
+                    data.dustParticles.position.copy(data.mesh.position);
+                    data.dustParticles.rotation.z += 0.0005;
+                }
             }
 
+            // Update asteroids
+            for (const asteroid of asteroids) {
+                asteroid.angle += asteroid.speed;
+                const x = asteroid.radius * Math.cos(asteroid.angle);
+                const z = asteroid.radius * Math.sin(asteroid.angle);
+                asteroid.mesh.position.set(x, asteroid.inclination, z);
+
+                asteroid.mesh.rotation.x += asteroid.rotSpeed.x;
+                asteroid.mesh.rotation.y += asteroid.rotSpeed.y;
+                asteroid.mesh.rotation.z += asteroid.rotSpeed.z;
+            }
+
+            // Camera target blend
             if (!isAnimatingToEarth && earthMesh) {
                 const distToEarth = camera.position.distanceTo(earthPosition);
-                const blend = Math.min(1, Math.max(0, (distToEarth - 22) / 45));
+                const blend = Math.min(1, Math.max(0, (distToEarth - 25) / 50));
                 const target = new THREE.Vector3().lerpVectors(
                     earthPosition,
                     new THREE.Vector3(0, 0, 0),
@@ -1505,7 +2061,7 @@
                 `;
         });
 
-        console.log('🌌 Solar System Ultra HD — All planets 4K, high-poly, sharp at any zoom.');
+        console.log('🌌 Solar System HD — Dark, varied asteroids; Saturn ring tilted with multicolored dust; Earth close-up on click.');
     </script>
 </body>
 </html>
