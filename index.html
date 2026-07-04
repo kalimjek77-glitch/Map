@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Solar System – 3D Earth & Planets</title>
+    <title>Solar System – Ultra HD Planets & Sun</title>
     <style>
         * {
             margin: 0;
@@ -29,8 +29,8 @@
             pointer-events: none;
             flex-wrap: wrap;
             justify-content: center;
+            z-index: 10;
         }
-
         #ui>* {
             pointer-events: auto;
         }
@@ -64,6 +64,7 @@
             box-shadow: 0 0 20px rgba(60, 140, 255, 0.08);
             user-select: none;
             font-family: inherit;
+            z-index: 10;
         }
         #earth-btn:hover {
             background: rgba(50, 130, 255, 0.7);
@@ -95,6 +96,7 @@
             pointer-events: none;
             user-select: none;
             font-variant-numeric: tabular-nums;
+            z-index: 10;
         }
 
         #planet-label {
@@ -115,6 +117,7 @@
             backdrop-filter: blur(2px);
             border: 1px solid rgba(255, 255, 255, 0.03);
             transition: opacity 0.8s ease;
+            z-index: 10;
         }
 
         @media (max-width: 600px) {
@@ -148,7 +151,7 @@
 <body>
 
     <div id="time-display">--:-- UTC</div>
-    <div id="planet-label">✦ Earth</div>
+    <div id="planet-label">✦ Solar System</div>
 
     <div id="ui">
         <div id="info">🔄 Drag · ⚡ Scroll to zoom</div>
@@ -170,51 +173,40 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         // ----- Config -----
-        const EARTH_RADIUS = 4.5;
-        const SUN_RADIUS = 7;
-        const PLANET_SCALE = 0.9;
+        const EARTH_RADIUS = 4.0;
+        const SUN_RADIUS = 6.5;
 
         const ORBITS = {
-            mercury: 14,
-            venus: 20,
-            earth: 28,
-            mars: 36,
-            jupiter: 52,
-            saturn: 70,
-            uranus: 88,
-            neptune: 106,
+            mercury: 12,
+            venus: 18,
+            earth: 25,
+            mars: 32,
+            jupiter: 46,
+            saturn: 62,
+            uranus: 80,
+            neptune: 96,
         };
 
         const PLANET_SIZES = {
-            mercury: 0.6,
-            venus: 0.9,
+            mercury: 0.55,
+            venus: 0.85,
             earth: EARTH_RADIUS,
-            mars: 0.7,
-            jupiter: 3.2,
-            saturn: 2.7,
-            uranus: 1.7,
-            neptune: 1.5,
+            mars: 0.65,
+            jupiter: 2.8,
+            saturn: 2.4,
+            uranus: 1.6,
+            neptune: 1.4,
         };
 
-        const PLANET_COLORS = {
-            mercury: '#b0b0b0',
-            venus: '#e8cda0',
-            mars: '#c1440e',
-            jupiter: '#d4a06a',
-            saturn: '#dac48e',
-            uranus: '#7ec8e3',
-            neptune: '#3e54e8',
-        };
-
-        const SUN_ROTATION_SPEED = 0.0004;
-        const ORBIT_SPEED_BASE = 0.0006;
+        const SUN_ROTATION_SPEED = 0.0003;
+        const ORBIT_SPEED_BASE = 0.0005;
 
         // ----- Scene Setup -----
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x05080f);
 
-        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1200);
-        camera.position.set(18, 8, 32);
+        const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 1200);
+        camera.position.set(20, 10, 35);
 
         const renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -234,20 +226,20 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.08;
         controls.rotateSpeed = 0.5;
-        controls.zoomSpeed = 0.7;
-        controls.minDistance = 6;
-        controls.maxDistance = 320;
+        controls.zoomSpeed = 0.8;
+        controls.minDistance = 4;
+        controls.maxDistance = 350;
         controls.target.set(0, 0, 0);
         controls.update();
 
-        // ----- Stars (with subtle color variation) -----
+        // ----- Stars (HD) -----
         function createStars() {
-            const count = 18000;
+            const count = 25000;
             const positions = new Float32Array(count * 3);
             const colors = new Float32Array(count * 3);
             const sizes = new Float32Array(count);
             for (let i = 0; i < count; i++) {
-                const radius = 120 + Math.random() * 300;
+                const radius = 150 + Math.random() * 350;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
                 positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
@@ -255,30 +247,34 @@
                 positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
                 const b = 0.3 + Math.random() * 0.7;
                 const t = Math.random();
-                if (t < 0.08) {
-                    colors[i * 3] = b * 0.7;
-                    colors[i * 3 + 1] = b * 0.6;
+                if (t < 0.06) {
+                    colors[i * 3] = b * 0.6;
+                    colors[i * 3 + 1] = b * 0.5;
                     colors[i * 3 + 2] = b * 1.0;
-                } else if (t < 0.16) {
+                } else if (t < 0.12) {
                     colors[i * 3] = b * 1.0;
-                    colors[i * 3 + 1] = b * 0.85;
-                    colors[i * 3 + 2] = b * 0.6;
+                    colors[i * 3 + 1] = b * 0.8;
+                    colors[i * 3 + 2] = b * 0.5;
+                } else if (t < 0.18) {
+                    colors[i * 3] = b * 0.9;
+                    colors[i * 3 + 1] = b * 0.9;
+                    colors[i * 3 + 2] = b * 1.0;
                 } else {
                     colors[i * 3] = b;
                     colors[i * 3 + 1] = b;
                     colors[i * 3 + 2] = b;
                 }
-                sizes[i] = 0.12 + Math.random() * 0.6;
+                sizes[i] = 0.10 + Math.random() * 0.5;
             }
             const geom = new THREE.BufferGeometry();
             geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
             geom.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
             const mat = new THREE.PointsMaterial({
-                size: 0.28,
+                size: 0.25,
                 vertexColors: true,
                 transparent: true,
-                opacity: 0.9,
+                opacity: 0.95,
                 sizeAttenuation: true,
                 blending: THREE.AdditiveBlending,
                 depthWrite: false,
@@ -289,22 +285,142 @@
         }
         createStars();
 
-        // ----- Sun -----
+        // ----- Sun with Fire Shader -----
         function createSun() {
-            // Glow sprite
+            const vertexShader = `
+                    varying vec3 vNormal;
+                    varying vec3 vPosition;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                        vPosition = worldPos.xyz;
+                        gl_Position = projectionMatrix * viewMatrix * worldPos;
+                    }
+                `;
+
+            const fragmentShader = `
+                    uniform float time;
+                    uniform vec3 color1;
+                    uniform vec3 color2;
+                    uniform vec3 color3;
+                    uniform vec3 color4;
+                    uniform float intensity;
+
+                    varying vec3 vNormal;
+                    varying vec3 vPosition;
+
+                    // 3D noise
+                    float hash(vec3 p) {
+                        p = fract(p * 0.3183099 + .1);
+                        p *= 17.0;
+                        return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+                    }
+
+                    float noise(vec3 p) {
+                        vec3 i = floor(p);
+                        vec3 f = fract(p);
+                        f = f * f * (3.0 - 2.0 * f);
+                        return mix(
+                            mix(
+                                mix(hash(i + vec3(0,0,0)), hash(i + vec3(1,0,0)), f.x),
+                                mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x),
+                                f.y
+                            ),
+                            mix(
+                                mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+                                mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x),
+                                f.y
+                            ),
+                            f.z
+                        );
+                    }
+
+                    float fbm(vec3 p) {
+                        float value = 0.0;
+                        float amplitude = 0.5;
+                        float frequency = 1.0;
+                        for (int i = 0; i < 5; i++) {
+                            value += amplitude * noise(p * frequency);
+                            frequency *= 2.1;
+                            amplitude *= 0.48;
+                        }
+                        return value;
+                    }
+
+                    void main() {
+                        vec3 viewDir = normalize(cameraPosition - vPosition);
+                        vec3 normal = normalize(vNormal);
+
+                        vec3 p = vPosition * 0.6;
+                        float t = time * 0.15;
+                        float n1 = fbm(p + vec3(t * 0.3, t * 0.2, t * 0.1));
+                        float n2 = fbm(p * 0.7 + vec3(t * 0.5, t * 0.3, t * 0.7));
+                        float n3 = fbm(p * 1.3 + vec3(t * 0.7, t * 0.5, t * 0.3));
+
+                        float fire = n1 * 0.6 + n2 * 0.3 + n3 * 0.1;
+
+                        float rim = 1.0 - abs(dot(normal, viewDir));
+                        rim = smoothstep(0.0, 0.8, rim);
+                        fire = fire * (0.4 + 0.6 * rim);
+
+                        vec3 col;
+                        if (fire > 0.75) {
+                            col = mix(color1, color2, (fire - 0.75) / 0.25);
+                        } else if (fire > 0.5) {
+                            col = mix(color2, color3, (fire - 0.5) / 0.25);
+                        } else {
+                            col = mix(color4, color3, fire / 0.5);
+                        }
+
+                        col *= 1.2 + 0.3 * fire;
+
+                        float glow = pow(1.0 - abs(dot(normal, viewDir)), 3.0) * 0.15;
+                        col += vec3(1.0, 0.6, 0.2) * glow;
+
+                        float pulse = 1.0 + 0.03 * sin(time * 0.8 + fire * 6.0);
+                        col *= pulse;
+                        col *= intensity;
+
+                        gl_FragColor = vec4(col, 1.0);
+                    }
+                `;
+
+            const uniforms = {
+                time: { value: 0 },
+                color1: { value: new THREE.Color(0xfff8ee) },
+                color2: { value: new THREE.Color(0xffdd44) },
+                color3: { value: new THREE.Color(0xff8800) },
+                color4: { value: new THREE.Color(0xcc2200) },
+                intensity: { value: 1.3 },
+            };
+
+            const sunMat = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                side: THREE.FrontSide,
+                transparent: false,
+            });
+
+            const sunGeo = new THREE.SphereGeometry(SUN_RADIUS, 128, 128);
+            const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+            scene.add(sunMesh);
+
+            // Glow sprites
             const glowTexture = (() => {
                 const canvas = document.createElement('canvas');
-                canvas.width = 256;
-                canvas.height = 256;
+                canvas.width = 512;
+                canvas.height = 512;
                 const ctx = canvas.getContext('2d');
-                const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-                gradient.addColorStop(0, 'rgba(255,200,100,1)');
-                gradient.addColorStop(0.1, 'rgba(255,180,80,0.9)');
-                gradient.addColorStop(0.4, 'rgba(255,150,50,0.5)');
-                gradient.addColorStop(0.7, 'rgba(200,100,30,0.15)');
+                const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+                gradient.addColorStop(0, 'rgba(255,220,140,1)');
+                gradient.addColorStop(0.05, 'rgba(255,200,100,0.9)');
+                gradient.addColorStop(0.2, 'rgba(255,180,70,0.6)');
+                gradient.addColorStop(0.5, 'rgba(255,120,30,0.25)');
+                gradient.addColorStop(0.8, 'rgba(200,80,20,0.08)');
                 gradient.addColorStop(1, 'rgba(255,200,100,0)');
                 ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, 256, 256);
+                ctx.fillRect(0, 0, 512, 512);
                 return new THREE.CanvasTexture(canvas);
             })();
 
@@ -319,76 +435,64 @@
             glowSprite.scale.set(55, 55, 1);
             scene.add(glowSprite);
 
-            // Sun sphere with procedural texture
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-
-            // Base orange-yellow
-            const grad = ctx.createRadialGradient(512, 256, 50, 512, 256, 512);
-            grad.addColorStop(0, '#fff8e0');
-            grad.addColorStop(0.3, '#ffdd77');
-            grad.addColorStop(0.6, '#ffaa33');
-            grad.addColorStop(0.85, '#dd7722');
-            grad.addColorStop(1, '#aa5511');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 1024, 512);
-
-            // Add some solar texture (spots, granulation)
-            for (let i = 0; i < 600; i++) {
-                const x = Math.random() * 1024;
-                const y = Math.random() * 512;
-                const r = 1 + Math.random() * 8;
-                const a = 0.05 + Math.random() * 0.15;
-                const bright = Math.random() > 0.5;
-                ctx.beginPath();
-                ctx.arc(x, y, r, 0, Math.PI * 2);
-                ctx.fillStyle = bright ?
-                    `rgba(255,255,230,${a * 0.5})` :
-                    `rgba(180,120,60,${a * 0.4})`;
-                ctx.fill();
-            }
-            // Bright streaks
-            for (let i = 0; i < 40; i++) {
-                const x = Math.random() * 1024;
-                const y = Math.random() * 512;
-                const w = 3 + Math.random() * 20;
-                const h = 1 + Math.random() * 4;
-                ctx.fillStyle = `rgba(255,240,200,${0.03 + Math.random() * 0.06})`;
-                ctx.fillRect(x, y, w, h);
-            }
-
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-
-            const mat = new THREE.MeshBasicMaterial({
-                map: texture,
-                color: 0xffdd88,
+            const innerGlowMat = new THREE.SpriteMaterial({
+                map: glowTexture,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                transparent: true,
+                opacity: 0.6,
+                color: 0xffaa44,
             });
-            const geom = new THREE.SphereGeometry(SUN_RADIUS, 64, 64);
-            const mesh = new THREE.Mesh(geom, mat);
-            scene.add(mesh);
-
-            // Small inner glow
-            const innerGlow = new THREE.Sprite(
-                new THREE.SpriteMaterial({
-                    map: glowTexture,
-                    blending: THREE.AdditiveBlending,
-                    depthWrite: false,
-                    transparent: true,
-                    opacity: 0.6,
-                    color: 0xffaa44,
-                })
-            );
-            innerGlow.scale.set(22, 22, 1);
+            const innerGlow = new THREE.Sprite(innerGlowMat);
+            innerGlow.scale.set(24, 24, 1);
             scene.add(innerGlow);
 
-            return { mesh, glowSprite, innerGlow };
-        }
-        const sun = createSun();
+            const coronaTexture = (() => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+                gradient.addColorStop(0, 'rgba(255,200,100,0.4)');
+                gradient.addColorStop(0.3, 'rgba(255,150,50,0.2)');
+                gradient.addColorStop(0.6, 'rgba(200,100,30,0.08)');
+                gradient.addColorStop(1, 'rgba(255,200,100,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 512, 512);
+                for (let i = 0; i < 60; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const len = 100 + Math.random() * 200;
+                    const width = 2 + Math.random() * 8;
+                    const x = 256 + Math.cos(angle) * 40;
+                    const y = 256 + Math.sin(angle) * 40;
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(angle);
+                    ctx.fillStyle = `rgba(255,200,100,${0.01 + Math.random() * 0.03})`;
+                    ctx.fillRect(0, -width / 2, len, width);
+                    ctx.restore();
+                }
+                return new THREE.CanvasTexture(canvas);
+            })();
 
-        // ----- Procedural Planet Textures -----
+            const coronaMat = new THREE.SpriteMaterial({
+                map: coronaTexture,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                transparent: true,
+                opacity: 0.5,
+                rotation: 0,
+            });
+            const corona = new THREE.Sprite(coronaMat);
+            corona.scale.set(85, 85, 1);
+            scene.add(corona);
+
+            return { mesh: sunMesh, uniforms, glowSprite, innerGlow, corona };
+        }
+
+        const sunObj = createSun();
+
+        // ----- Ultra HD Planet Texture Generator (4096x2048) -----
         function createPlanetTexture(baseColor, options = {}) {
             const {
                 bands = false,
@@ -396,107 +500,231 @@
                     spots = false,
                     spotCount = 0,
                     swirls = false,
+                    swirlCount = 0,
                     craters = false,
                     craterCount = 0,
                     noise = false,
                     noiseAmount = 0,
+                    dust = false,
+                    dustCount = 0,
+                    clouds = false,
+                    cloudCount = 0,
+                    ice = false,
+                    iceCount = 0,
             } = options;
 
-            const W = 1024,
-                H = 512;
+            const W = 4096,
+                H = 2048; // 4K resolution
             const canvas = document.createElement('canvas');
             canvas.width = W;
             canvas.height = H;
             const ctx = canvas.getContext('2d');
 
-            // Base color
             const c = new THREE.Color(baseColor);
-            ctx.fillStyle = `rgb(${c.r*255|0},${c.g*255|0},${c.b*255|0})`;
+
+            const grad = ctx.createLinearGradient(0, 0, 0, H);
+            const c1 = new THREE.Color(baseColor).multiplyScalar(0.85);
+            const c2 = new THREE.Color(baseColor).multiplyScalar(1.15);
+            grad.addColorStop(0, `rgb(${c1.r*255|0},${c1.g*255|0},${c1.b*255|0})`);
+            grad.addColorStop(0.5, `rgb(${c.r*255|0},${c.g*255|0},${c.b*255|0})`);
+            grad.addColorStop(1, `rgb(${c2.r*255|0},${c2.g*255|0},${c2.b*255|0})`);
+            ctx.fillStyle = grad;
             ctx.fillRect(0, 0, W, H);
 
-            // Bands (Jupiter, Saturn)
+            // Bands
             if (bands && bandColors.length > 0) {
-                for (let i = 0; i < 30; i++) {
+                for (let i = 0; i < 45; i++) {
                     const y = Math.random() * H;
-                    const h = 5 + Math.random() * 35;
-                    const col = bandColors[Math.floor(Math.random() * bandColors.length)];
-                    const colObj = new THREE.Color(col);
+                    const h = 10 + Math.random() * 60;
+                    const col = new THREE.Color(bandColors[Math.floor(Math.random() * bandColors.length)]);
                     const alpha = 0.2 + Math.random() * 0.5;
                     ctx.fillStyle =
-                        `rgba(${colObj.r*255|0},${colObj.g*255|0},${colObj.b*255|0},${alpha})`;
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${alpha})`;
                     ctx.fillRect(0, y, W, h);
                 }
-                // Smear bands horizontally
-                for (let i = 0; i < 80; i++) {
+                for (let i = 0; i < 250; i++) {
                     const y = Math.random() * H;
                     const x = Math.random() * W;
-                    const w = 20 + Math.random() * 120;
-                    const h = 2 + Math.random() * 20;
-                    const col = bandColors[Math.floor(Math.random() * bandColors.length)];
-                    const colObj = new THREE.Color(col);
+                    const w = 40 + Math.random() * 250;
+                    const h = 3 + Math.random() * 40;
+                    const col = new THREE.Color(bandColors[Math.floor(Math.random() * bandColors.length)]);
                     ctx.fillStyle =
-                        `rgba(${colObj.r*255|0},${colObj.g*255|0},${colObj.b*255|0},${0.1+Math.random()*0.3})`;
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.08+Math.random()*0.35})`;
                     ctx.fillRect(x, y, w, h);
+                }
+                for (let i = 0; i < 300; i++) {
+                    const y = Math.random() * H;
+                    const x = Math.random() * W;
+                    const r = 4 + Math.random() * 20;
+                    const col = new THREE.Color(bandColors[Math.floor(Math.random() * bandColors.length)]);
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fillStyle =
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.05+Math.random()*0.2})`;
+                    ctx.fill();
                 }
             }
 
-            // Spots (Jupiter's Great Red Spot, etc.)
+            // Spots
             if (spots) {
                 for (let i = 0; i < spotCount; i++) {
                     const x = Math.random() * W;
                     const y = Math.random() * H;
-                    const r = 5 + Math.random() * 40;
-                    const col = new THREE.Color(baseColor).multiplyScalar(0.5 + Math.random() * 0.6);
+                    const r = 10 + Math.random() * 70;
+                    const col = new THREE.Color(baseColor).multiplyScalar(0.4 + Math.random() * 0.5);
                     ctx.beginPath();
                     ctx.arc(x, y, r, 0, Math.PI * 2);
                     ctx.fillStyle =
                         `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.3+Math.random()*0.5})`;
                     ctx.fill();
-                    // Highlight
                     ctx.beginPath();
-                    ctx.arc(x - r * 0.2, y - r * 0.2, r * 0.3, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(255,255,240,${0.05+Math.random()*0.15})`;
-                    ctx.fill();
-                }
-            }
-
-            // Craters (Mercury, Moon)
-            if (craters) {
-                for (let i = 0; i < craterCount; i++) {
-                    const x = Math.random() * W;
-                    const y = Math.random() * H;
-                    const r = 2 + Math.random() * 15;
-                    const col = new THREE.Color(baseColor).multiplyScalar(0.5 + Math.random() * 0.4);
-                    ctx.beginPath();
-                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.arc(x - r * 0.15, y - r * 0.2, r * 0.25, 0, Math.PI * 2);
                     ctx.fillStyle =
-                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.3+Math.random()*0.5})`;
+                    `rgba(255,255,240,${0.05+Math.random()*0.15})`;
                     ctx.fill();
-                    // Rim highlight
                     ctx.beginPath();
-                    ctx.arc(x - r * 0.2, y - r * 0.3, r * 0.9, 0, Math.PI * 2);
-                    ctx.strokeStyle = `rgba(255,255,255,${0.05+Math.random()*0.1})`;
-                    ctx.lineWidth = 1;
+                    ctx.arc(x + r * 0.1, y + r * 0.1, r * 0.9, 0, Math.PI * 2);
+                    ctx.strokeStyle =
+                        `rgba(0,0,0,${0.05+Math.random()*0.1})`;
+                    ctx.lineWidth = 2;
                     ctx.stroke();
                 }
             }
 
-            // Swirls (Venus, Uranus, Neptune)
+            // Swirls
             if (swirls) {
-                for (let i = 0; i < 120; i++) {
+                for (let i = 0; i < swirlCount; i++) {
                     const x = Math.random() * W;
                     const y = Math.random() * H;
-                    const w = 10 + Math.random() * 60;
-                    const h = 2 + Math.random() * 12;
+                    const w = 25 + Math.random() * 120;
+                    const h = 3 + Math.random() * 28;
                     const angle = Math.random() * Math.PI * 2;
-                    const col = new THREE.Color(baseColor).multiplyScalar(0.7 + Math.random() * 0.5);
+                    const col = new THREE.Color(baseColor).multiplyScalar(0.6 + Math.random() * 0.5);
                     ctx.save();
                     ctx.translate(x, y);
                     ctx.rotate(angle);
                     ctx.fillStyle =
-                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.05+Math.random()*0.2})`;
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.05+Math.random()*0.25})`;
+                    ctx.fillRect(-w / 2, -h / 2, w, h);
+                    for (let j = 0; j < 3; j++) {
+                        const w2 = w * (0.5 + Math.random() * 0.5);
+                        const h2 = h * (0.3 + Math.random() * 0.5);
+                        ctx.fillStyle =
+                            `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.02+Math.random()*0.08})`;
+                        ctx.fillRect(-w2 / 2 + Math.random() * w2 * 0.3, -h2 / 2 + Math.random() * h2 * 0.3, w2, h2);
+                    }
+                    ctx.restore();
+                }
+            }
+
+            // Craters
+            if (craters) {
+                for (let i = 0; i < craterCount; i++) {
+                    const x = Math.random() * W;
+                    const y = Math.random() * H;
+                    const r = 3 + Math.random() * 30;
+                    const col = new THREE.Color(baseColor).multiplyScalar(0.4 + Math.random() * 0.5);
+                    ctx.beginPath();
+                    ctx.arc(x + r * 0.15, y + r * 0.15, r, 0, Math.PI * 2);
+                    ctx.fillStyle =
+                        `rgba(0,0,0,${0.1+Math.random()*0.2})`;
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fillStyle =
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.3+Math.random()*0.5})`;
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(x - r * 0.2, y - r * 0.3, r * 0.85, 0, Math.PI * 2);
+                    ctx.strokeStyle =
+                        `rgba(255,255,240,${0.04+Math.random()*0.12})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(x + r * 0.1, y + r * 0.1, r * 0.7, 0, Math.PI * 2);
+                    ctx.fillStyle =
+                        `rgba(0,0,0,${0.03+Math.random()*0.08})`;
+                    ctx.fill();
+                }
+            }
+
+            // Dust
+            if (dust) {
+                for (let i = 0; i < dustCount; i++) {
+                    const x = Math.random() * W;
+                    const y = Math.random() * H;
+                    const r = 1 + Math.random() * 8;
+                    const col = new THREE.Color(baseColor).multiplyScalar(0.7 + Math.random() * 0.6);
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fillStyle =
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.1+Math.random()*0.3})`;
+                    ctx.fill();
+                }
+                for (let i = 0; i < 60; i++) {
+                    const x = Math.random() * W;
+                    const y = Math.random() * H;
+                    const w = 30 + Math.random() * 150;
+                    const h = 1 + Math.random() * 6;
+                    const col = new THREE.Color(baseColor).multiplyScalar(0.8 + Math.random() * 0.4);
+                    ctx.fillStyle =
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.03+Math.random()*0.08})`;
+                    ctx.fillRect(x, y, w, h);
+                }
+            }
+
+            // Clouds
+            if (clouds) {
+                for (let i = 0; i < cloudCount; i++) {
+                    const x = Math.random() * W;
+                    const y = Math.random() * H;
+                    const w = 30 + Math.random() * 200;
+                    const h = 8 + Math.random() * 60;
+                    const col = new THREE.Color(baseColor).multiplyScalar(1.1 + Math.random() * 0.3);
+                    const alpha = 0.05 + Math.random() * 0.15;
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(Math.random() * 0.5 - 0.25);
+                    const grad2 = ctx.createRadialGradient(0, 0, 0, 0, 0, w / 2);
+                    grad2.addColorStop(0,
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${alpha})`);
+                    grad2.addColorStop(0.5,
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${alpha*0.6})`);
+                    grad2.addColorStop(1,
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},0)`);
+                    ctx.fillStyle = grad2;
                     ctx.fillRect(-w / 2, -h / 2, w, h);
                     ctx.restore();
+                }
+            }
+
+            // Ice
+            if (ice) {
+                for (let i = 0; i < iceCount; i++) {
+                    const x = Math.random() * W;
+                    const y = Math.random() * H;
+                    const r = 6 + Math.random() * 30;
+                    const col = new THREE.Color(0xccddff);
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fillStyle =
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.05+Math.random()*0.15})`;
+                    ctx.fill();
+                }
+                for (let cap = 0; cap < 2; cap++) {
+                    const yBase = cap === 0 ? 0 : H;
+                    const yCenter = cap === 0 ? 60 : H - 60;
+                    for (let i = 0; i < 120; i++) {
+                        const x = Math.random() * W;
+                        const y = yCenter + (Math.random() - 0.5) * 100;
+                        const r = 4 + Math.random() * 20;
+                        const col = new THREE.Color(0xccddff);
+                        ctx.beginPath();
+                        ctx.arc(x, y, r, 0, Math.PI * 2);
+                        ctx.fillStyle =
+                            `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.05+Math.random()*0.12})`;
+                        ctx.fill();
+                    }
                 }
             }
 
@@ -517,17 +745,20 @@
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
             texture.wrapS = THREE.RepeatWrapping;
             texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.generateMipmaps = true;
             return texture;
         }
 
-        // ----- Create Planets -----
+        // ----- Create Planets with High-res Textures & High-poly Geometry -----
         const planets = {};
         const orbitLines = [];
         const planetMeshes = [];
 
-        function createOrbitPath(radius, color = 0x334466, opacity = 0.2) {
+        function createOrbitPath(radius, color = 0x334466, opacity = 0.15) {
             const points = [];
-            const segments = 120;
+            const segments = 160;
             for (let i = 0; i <= segments; i++) {
                 const angle = (i / segments) * Math.PI * 2;
                 points.push(new THREE.Vector3(
@@ -555,10 +786,17 @@
                     spots = false,
                     spotCount = 0,
                     swirls = false,
+                    swirlCount = 0,
                     craters = false,
                     craterCount = 0,
                     noise = false,
                     noiseAmount = 0,
+                    dust = false,
+                    dustCount = 0,
+                    clouds = false,
+                    cloudCount = 0,
+                    ice = false,
+                    iceCount = 0,
                     emissive = false,
                     emissiveColor = null,
                     rings = false,
@@ -566,35 +804,42 @@
                     ringInner = 1.3,
                     ringOuter = 2.2,
                     tilt = 0,
+                    roughness = 0.7,
+                    metalness = 0.05,
             } = options;
 
-            // Texture
             const tex = createPlanetTexture(color, {
                 bands,
                 bandColors,
                 spots,
                 spotCount,
                 swirls,
+                swirlCount,
                 craters,
                 craterCount,
                 noise,
                 noiseAmount,
+                dust,
+                dustCount,
+                clouds,
+                cloudCount,
+                ice,
+                iceCount,
             });
 
             const mat = new THREE.MeshStandardMaterial({
                 map: tex,
-                roughness: 0.6 + Math.random() * 0.3,
-                metalness: 0.05 + Math.random() * 0.15,
+                roughness: roughness,
+                metalness: metalness,
                 emissive: emissive ? new THREE.Color(emissiveColor) : new THREE.Color(0x000000),
-                emissiveIntensity: emissive ? 0.1 : 0,
+                emissiveIntensity: emissive ? 0.08 : 0,
             });
 
-            const geom = new THREE.SphereGeometry(radius, 64, 64);
+            const geom = new THREE.SphereGeometry(radius, 128, 128); // High-poly
             const mesh = new THREE.Mesh(geom, mat);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
-            // Random starting angle
             const startAngle = Math.random() * Math.PI * 2;
             mesh.position.x = orbitRadius * Math.cos(startAngle);
             mesh.position.z = orbitRadius * Math.sin(startAngle);
@@ -604,36 +849,45 @@
 
             scene.add(mesh);
 
-            // Rings (Saturn)
             let ringMesh = null;
             if (rings) {
                 const ringGeo = new THREE.RingGeometry(
                     radius * ringInner,
                     radius * ringOuter,
-                    96
+                    128
                 );
                 const ringTex = (() => {
                     const c = document.createElement('canvas');
-                    c.width = 512;
-                    c.height = 64;
-                    const ctx = c.getContext('2d');
+                    c.width = 1024;
+                    c.height = 128;
+                    const ctx2 = c.getContext('2d');
                     const col = new THREE.Color(ringColor);
-                    for (let x = 0; x < 512; x++) {
-                        const v = 0.5 + 0.5 * Math.sin(x * 0.05) * 0.3 +
-                            0.5 * Math.sin(x * 0.12 + 1.2) * 0.15;
-                        const bright = 0.3 + v * 0.6;
+                    for (let x = 0; x < 1024; x++) {
+                        const v = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(x * 0.04 + 0.7) *
+                            0.4 + 0.5 * Math.sin(x * 0.09 + 2.1) * 0.2);
+                        const bright = 0.25 + v * 0.7;
                         const r = col.r * bright * 255 | 0;
                         const g = col.g * bright * 255 | 0;
                         const b = col.b * bright * 255 | 0;
-                        const alpha = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(x * 0.07 + 0.5));
-                        ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
-                        ctx.fillRect(x, 0, 1, 64);
+                        const alpha = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(x * 0.06 + 0.3));
+                        ctx2.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+                        ctx2.fillRect(x, 0, 1, 128);
                     }
-                    // Add some gaps
-                    for (let i = 0; i < 8; i++) {
-                        const x = 50 + Math.random() * 400;
-                        ctx.fillStyle = `rgba(0,0,0,${0.2+Math.random()*0.3})`;
-                        ctx.fillRect(x, 0, 3 + Math.random() * 6, 64);
+                    for (let i = 0; i < 12; i++) {
+                        const x = 30 + Math.random() * 900;
+                        const w = 4 + Math.random() * 12;
+                        ctx2.fillStyle = `rgba(0,0,0,${0.15+Math.random()*0.35})`;
+                        ctx2.fillRect(x, 0, w, 128);
+                    }
+                    for (let i = 0; i < 200; i++) {
+                        const x = Math.random() * 1024;
+                        const y = Math.random() * 128;
+                        const w = 2 + Math.random() * 30;
+                        const h = 2 + Math.random() * 10;
+                        const col2 = new THREE.Color(ringColor).multiplyScalar(0.7 + Math.random() * 0.6);
+                        ctx2.fillStyle =
+                            `rgba(${col2.r*255|0},${col2.g*255|0},${col2.b*255|0},${0.03+Math.random()*0.08})`;
+                        ctx2.fillRect(x, y, w, h);
                     }
                     return new THREE.CanvasTexture(c);
                 })();
@@ -646,14 +900,13 @@
                     depthWrite: false,
                 });
                 ringMesh = new THREE.Mesh(ringGeo, ringMat);
-                ringMesh.rotation.x = Math.PI / 2.4 + tilt;
+                ringMesh.rotation.x = Math.PI / 2.2 + tilt;
                 ringMesh.position.copy(mesh.position);
                 scene.add(ringMesh);
             }
 
-            // Orbit line
-            const orbitColor = new THREE.Color(color).multiplyScalar(1.5);
-            const orbitLine = createOrbitPath(orbitRadius, orbitColor, 0.15);
+            const orbitColor = new THREE.Color(color).multiplyScalar(1.6);
+            const orbitLine = createOrbitPath(orbitRadius, orbitColor, 0.12);
 
             const data = {
                 mesh,
@@ -662,7 +915,7 @@
                 orbitRadius,
                 radius,
                 angle: startAngle,
-                speed: ORBIT_SPEED_BASE * (1 / (orbitRadius * 0.04 + 0.3)),
+                speed: ORBIT_SPEED_BASE * (1 / (orbitRadius * 0.035 + 0.25)),
                 name,
                 tilt,
                 startAngle,
@@ -675,76 +928,102 @@
             return data;
         }
 
-        // ----- Build Solar System -----
+        // ----- Build Planets with Ultra HD textures -----
 
         // Mercury
-        createPlanet('mercury', PLANET_SIZES.mercury, ORBITS.mercury, PLANET_COLORS.mercury, {
+        createPlanet('mercury', PLANET_SIZES.mercury, ORBITS.mercury, '#b0b0b0', {
             craters: true,
-            craterCount: 120,
+            craterCount: 400,
             noise: true,
-            noiseAmount: 0.08,
+            noiseAmount: 0.12,
+            roughness: 0.9,
+            metalness: 0.1,
         });
 
         // Venus
-        createPlanet('venus', PLANET_SIZES.venus, ORBITS.venus, PLANET_COLORS.venus, {
+        createPlanet('venus', PLANET_SIZES.venus, ORBITS.venus, '#e8cda0', {
             swirls: true,
+            swirlCount: 400,
+            clouds: true,
+            cloudCount: 300,
             noise: true,
-            noiseAmount: 0.05,
+            noiseAmount: 0.04,
+            roughness: 0.6,
+            metalness: 0.05,
         });
 
-        // Earth – will be created separately with custom shader
-
         // Mars
-        createPlanet('mars', PLANET_SIZES.mars, ORBITS.mars, PLANET_COLORS.mars, {
+        createPlanet('mars', PLANET_SIZES.mars, ORBITS.mars, '#c1440e', {
             craters: true,
-            craterCount: 60,
+            craterCount: 300,
+            dust: true,
+            dustCount: 600,
             noise: true,
             noiseAmount: 0.1,
-            spots: true,
-            spotCount: 10,
+            ice: true,
+            iceCount: 100,
+            roughness: 0.85,
+            metalness: 0.05,
         });
 
         // Jupiter
-        createPlanet('jupiter', PLANET_SIZES.jupiter, ORBITS.jupiter, PLANET_COLORS.jupiter, {
+        createPlanet('jupiter', PLANET_SIZES.jupiter, ORBITS.jupiter, '#d4a06a', {
             bands: true,
-            bandColors: ['#d4a06a', '#c89050', '#e8c090', '#b07840', '#f0d8b0', '#a06830'],
+            bandColors: ['#d4a06a', '#c89050', '#e8c090', '#b07840', '#f0d8b0', '#a06830', '#d8b080'],
             spots: true,
-            spotCount: 15,
+            spotCount: 45,
+            noise: true,
+            noiseAmount: 0.03,
+            roughness: 0.5,
+            metalness: 0.05,
         });
 
         // Saturn
-        createPlanet('saturn', PLANET_SIZES.saturn, ORBITS.saturn, PLANET_COLORS.saturn, {
+        createPlanet('saturn', PLANET_SIZES.saturn, ORBITS.saturn, '#dac48e', {
             bands: true,
-            bandColors: ['#dac48e', '#c8b078', '#e8d8a0', '#b09860', '#f0e0b0'],
+            bandColors: ['#dac48e', '#c8b078', '#e8d8a0', '#b09860', '#f0e0b0', '#c0a870'],
             rings: true,
             ringColor: '#d4c09a',
-            ringInner: 1.2,
-            ringOuter: 2.4,
+            ringInner: 1.25,
+            ringOuter: 2.5,
             tilt: 0.4,
+            roughness: 0.5,
+            metalness: 0.05,
         });
 
         // Uranus
-        createPlanet('uranus', PLANET_SIZES.uranus, ORBITS.uranus, PLANET_COLORS.uranus, {
+        createPlanet('uranus', PLANET_SIZES.uranus, ORBITS.uranus, '#7ec8e3', {
             swirls: true,
+            swirlCount: 350,
+            clouds: true,
+            cloudCount: 220,
+            ice: true,
+            iceCount: 150,
             noise: true,
-            noiseAmount: 0.04,
+            noiseAmount: 0.03,
             tilt: 1.6,
+            roughness: 0.4,
+            metalness: 0.1,
         });
 
         // Neptune
-        createPlanet('neptune', PLANET_SIZES.neptune, ORBITS.neptune, PLANET_COLORS.neptune, {
+        createPlanet('neptune', PLANET_SIZES.neptune, ORBITS.neptune, '#3e54e8', {
             swirls: true,
+            swirlCount: 380,
+            clouds: true,
+            cloudCount: 250,
             noise: true,
-            noiseAmount: 0.06,
+            noiseAmount: 0.04,
+            roughness: 0.4,
+            metalness: 0.1,
         });
 
-        // ----- Earth (with custom day/night shader & borders) -----
+        // ----- Earth (with custom shader & borders) -----
         let earthUniforms = null;
         let earthMesh = null;
         let earthPosition = new THREE.Vector3(ORBITS.earth, 0, 0);
 
         async function createEarth() {
-            // Load Earth texture with borders
             const canvas = document.createElement('canvas');
             const W = 4096;
             const H = 2048;
@@ -769,8 +1048,8 @@
                 );
                 const geoData = await geoResp.json();
 
-                ctx.strokeStyle = 'rgba(180, 200, 230, 0.5)';
-                ctx.lineWidth = 1.6;
+                ctx.strokeStyle = 'rgba(180, 200, 230, 0.45)';
+                ctx.lineWidth = 1.8;
 
                 function project(lng, lat) {
                     return [(lng + 180) / 360 * W, (90 - lat) / 180 * H];
@@ -812,7 +1091,7 @@
                 }
 
                 // Graticule
-                ctx.strokeStyle = 'rgba(100, 150, 200, 0.06)';
+                ctx.strokeStyle = 'rgba(100, 150, 200, 0.05)';
                 ctx.lineWidth = 0.5;
                 for (let lat = -90; lat <= 90; lat += 30) {
                     const y = (90 - lat) / 180 * H;
@@ -838,7 +1117,6 @@
             texture.magFilter = THREE.LinearFilter;
             texture.generateMipmaps = true;
 
-            // Shader
             const vertexShader = `
                     varying vec3 vNormal;
                     varying vec2 vUv;
@@ -878,7 +1156,7 @@
                         vec3 finalColor = mix(nightCol, dayCol, dayFactor);
 
                         float rim = 1.0 - abs(sunIntensity);
-                        float cityGlow = smoothstep(0.2, 0.7, rim) * 0.05;
+                        float cityGlow = smoothstep(0.2, 0.7, rim) * 0.06;
                         finalColor += vec3(0.6, 0.5, 0.2) * cityGlow * nightBrightness;
 
                         float terminatorGlow = exp(-pow(abs(sunIntensity) / 0.3, 2.0)) * 0.035;
@@ -916,18 +1194,16 @@
             earthUniforms = uniforms;
             earthPosition.copy(mesh.position);
 
-            // Earth orbit
-            const earthOrbit = createOrbitPath(ORBITS.earth, 0x4488cc, 0.2);
+            const earthOrbit = createOrbitPath(ORBITS.earth, 0x4488cc, 0.18);
             orbitLines.push(earthOrbit);
 
-            // Store earth data
             planets.earth = {
                 mesh,
                 orbitLine: earthOrbit,
                 orbitRadius: ORBITS.earth,
                 radius: EARTH_RADIUS,
                 angle: startAngle,
-                speed: ORBIT_SPEED_BASE * (1 / (ORBITS.earth * 0.04 + 0.3)),
+                speed: ORBIT_SPEED_BASE * (1 / (ORBITS.earth * 0.035 + 0.25)),
                 name: 'earth',
                 tilt: 0,
                 startAngle,
@@ -935,7 +1211,7 @@
             };
             planetMeshes.push(mesh);
 
-            // Atmosphere glow
+            // Atmosphere
             const atmVert = `
                     varying vec3 vNormal;
                     void main() {
@@ -1010,7 +1286,7 @@
             return { mesh, uniforms };
         }
 
-        // ----- Earth Button & Camera Target -----
+        // ----- Earth Button -----
         let isAnimatingToEarth = false;
         let animStart = 0;
         let animDuration = 1200;
@@ -1024,7 +1300,7 @@
         function flyToEarth() {
             if (!earthMesh) return;
             const earthPos = earthMesh.position.clone();
-            const offset = new THREE.Vector3(6, 4, 10);
+            const offset = new THREE.Vector3(5.5, 3.5, 9);
             const targetPos = earthPos.clone().add(offset);
 
             animStartPos.copy(camera.position);
@@ -1050,13 +1326,12 @@
         const labelEl = document.getElementById('planet-label');
 
         function updateLabel(distToEarth) {
-            const threshold = 35;
+            const threshold = 30;
             if (distToEarth < threshold) {
                 labelEl.textContent = '✦ Earth';
                 labelEl.style.opacity = '1';
             } else {
                 const planets_list = Object.keys(planets).filter(p => p !== 'earth');
-                // Find closest planet
                 let closest = null;
                 let closestDist = Infinity;
                 for (const name of planets_list) {
@@ -1068,7 +1343,11 @@
                         closest = name;
                     }
                 }
-                if (closest && closestDist < 60) {
+                const sunDist = camera.position.length();
+                if (sunDist < closestDist && sunDist < 40) {
+                    labelEl.textContent = '✦ Sun';
+                    labelEl.style.opacity = '0.8';
+                } else if (closest && closestDist < 55) {
                     const names = {
                         mercury: '☿ Mercury',
                         venus: '♀ Venus',
@@ -1082,7 +1361,7 @@
                     labelEl.style.opacity = '0.7';
                 } else {
                     labelEl.textContent = '✦ Solar System';
-                    labelEl.style.opacity = '0.4';
+                    labelEl.style.opacity = '0.3';
                 }
             }
         }
@@ -1094,7 +1373,6 @@
             try {
                 await createEarth();
                 earthReady = true;
-                // Set initial sun direction based on time
                 const now = new Date();
                 const hours = now.getUTCHours() + now.getUTCMinutes() / 60;
                 const angle = (hours / 24) * Math.PI * 2;
@@ -1106,7 +1384,6 @@
                 if (earthUniforms) {
                     earthUniforms.sunDirection.value.copy(sunDir);
                 }
-                // Update camera to look at Earth initially
                 if (earthMesh) {
                     const ep = earthMesh.position.clone();
                     controls.target.copy(ep);
@@ -1116,33 +1393,32 @@
                 animate();
             } catch (err) {
                 console.error('Earth init error:', err);
-                // Fallback: show error but still animate
                 earthReady = true;
                 animate();
             }
         }
 
         // ----- Animation Loop -----
-        let frameCount = 0;
-
         function animate() {
             requestAnimationFrame(animate);
-            frameCount++;
 
-            // ----- Animate orbits -----
+            if (sunObj.uniforms) {
+                sunObj.uniforms.time.value += 0.016;
+            }
+            if (sunObj.corona) {
+                sunObj.corona.material.rotation += 0.0003;
+            }
+
             for (const name in planets) {
                 const data = planets[name];
                 if (!data || !data.mesh) continue;
-                // Update angle
                 data.angle += data.speed;
                 const x = data.orbitRadius * Math.cos(data.angle);
                 const z = data.orbitRadius * Math.sin(data.angle);
                 data.mesh.position.set(x, 0, z);
 
-                // Self rotation
-                data.mesh.rotation.y += 0.005;
+                data.mesh.rotation.y += 0.004;
 
-                // Update earth position
                 if (name === 'earth') {
                     earthPosition.copy(data.mesh.position);
                     if (data.atmosphere) {
@@ -1151,7 +1427,6 @@
                     if (data.outerGlow) {
                         data.outerGlow.position.copy(data.mesh.position);
                     }
-                    // Update sun direction for Earth shader
                     if (earthUniforms) {
                         const dir = earthUniforms.sunDirection.value;
                         const speed = SUN_ROTATION_SPEED;
@@ -1166,47 +1441,34 @@
                     }
                 }
 
-                // Update ring if present
                 if (data.ringMesh) {
                     data.ringMesh.position.copy(data.mesh.position);
                     data.ringMesh.rotation.z += 0.001;
                 }
             }
 
-            // ----- Sun rotation -----
-            sun.mesh.rotation.y += 0.0008;
-
-            // ----- Camera target: smooth transition between Earth and Sun -----
             if (!isAnimatingToEarth && earthMesh) {
                 const distToEarth = camera.position.distanceTo(earthPosition);
-                const blend = Math.min(1, Math.max(0, (distToEarth - 25) / 45));
-                // blend: 0 = Earth, 1 = Sun
+                const blend = Math.min(1, Math.max(0, (distToEarth - 22) / 45));
                 const target = new THREE.Vector3().lerpVectors(
                     earthPosition,
                     new THREE.Vector3(0, 0, 0),
                     blend
                 );
-                controls.target.lerp(target, 0.06);
-
-                // Update label
+                controls.target.lerp(target, 0.05);
                 updateLabel(distToEarth);
             }
 
-            // ----- Earth button animation -----
             if (isAnimatingToEarth) {
                 const elapsed = performance.now() - animStart;
                 const t = Math.min(1, elapsed / animDuration);
-                // Ease in-out cubic
                 const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
                 camera.position.lerpVectors(animStartPos, animEndPos, ease);
                 controls.target.lerpVectors(animStartTarget, animEndTarget, ease);
-
                 if (t >= 1) {
                     isAnimatingToEarth = false;
                     controls.target.copy(animEndTarget);
                 }
-                // Update label during animation
                 const dist = camera.position.distanceTo(earthPosition);
                 updateLabel(dist);
             }
@@ -1224,7 +1486,7 @@
             renderer.setSize(w, h);
         });
 
-        // ----- Keyboard shortcut: E for Earth -----
+        // ----- Keyboard shortcut -----
         window.addEventListener('keydown', (e) => {
             if (e.key === 'e' || e.key === 'E') {
                 flyToEarth();
@@ -1243,8 +1505,7 @@
                 `;
         });
 
-        console.log('🌌 Solar System ready — Drag to orbit, scroll to zoom. Press "E" or click "Earth" to return.');
-        console.log('🪐 Planets: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune');
+        console.log('🌌 Solar System Ultra HD — All planets 4K, high-poly, sharp at any zoom.');
     </script>
 </body>
 </html>
