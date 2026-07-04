@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>3D Earth Globe - Realistic & HD</title>
+    <title>Solar System – 3D Earth & Planets</title>
     <style>
         * {
             margin: 0;
@@ -11,40 +11,83 @@
             overflow: hidden;
         }
         body {
-            background: #0a0e1a;
-            font-family: Arial, sans-serif;
+            background: #05080f;
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
         canvas {
             display: block;
         }
 
-        #info {
+        #ui {
             position: absolute;
-            bottom: 20px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 14px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
             pointer-events: none;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #ui>* {
+            pointer-events: auto;
+        }
+
+        #info {
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 13px;
             font-weight: 300;
-            letter-spacing: 1px;
-            background: rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.8px;
+            background: rgba(0, 0, 0, 0.45);
             padding: 6px 18px;
             border-radius: 20px;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             user-select: none;
+            white-space: nowrap;
+        }
+
+        #earth-btn {
+            background: rgba(30, 80, 180, 0.6);
+            border: 1px solid rgba(100, 180, 255, 0.25);
+            color: #fff;
+            padding: 6px 22px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(60, 140, 255, 0.08);
+            user-select: none;
+            font-family: inherit;
+        }
+        #earth-btn:hover {
+            background: rgba(50, 130, 255, 0.7);
+            border-color: rgba(120, 200, 255, 0.5);
+            box-shadow: 0 0 35px rgba(60, 140, 255, 0.2);
+            transform: scale(1.03);
+        }
+        #earth-btn:active {
+            transform: scale(0.96);
+        }
+        #earth-btn .icon {
+            display: inline-block;
+            margin-right: 6px;
         }
 
         #time-display {
             position: absolute;
             top: 20px;
             right: 24px;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.4);
             font-size: 13px;
             font-weight: 300;
             letter-spacing: 0.5px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.35);
             padding: 4px 14px;
             border-radius: 16px;
             backdrop-filter: blur(4px);
@@ -54,11 +97,31 @@
             font-variant-numeric: tabular-nums;
         }
 
+        #planet-label {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 12px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            pointer-events: none;
+            user-select: none;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 3px 16px;
+            border-radius: 12px;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: opacity 0.8s ease;
+        }
+
         @media (max-width: 600px) {
             #info {
                 font-size: 11px;
                 padding: 4px 12px;
-                bottom: 14px;
+                white-space: normal;
             }
             #time-display {
                 font-size: 11px;
@@ -66,13 +129,31 @@
                 top: 14px;
                 right: 14px;
             }
+            #earth-btn {
+                font-size: 12px;
+                padding: 5px 16px;
+            }
+            #ui {
+                bottom: 16px;
+                gap: 10px;
+            }
+            #planet-label {
+                bottom: 68px;
+                font-size: 10px;
+                padding: 2px 12px;
+            }
         }
     </style>
 </head>
 <body>
 
     <div id="time-display">--:-- UTC</div>
-    <div id="info">🔄 Drag to rotate · ⚡ Scroll to zoom</div>
+    <div id="planet-label">✦ Earth</div>
+
+    <div id="ui">
+        <div id="info">🔄 Drag · ⚡ Scroll to zoom</div>
+        <button id="earth-btn"><span class="icon">🌍</span> Earth</button>
+    </div>
 
     <script type="importmap">
         {
@@ -89,20 +170,51 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         // ----- Config -----
-        const EARTH_RADIUS = 5;
-        const MAX_ZOOM = 5.5; // closest zoom (country level)
-        const MIN_ZOOM = 25; // farthest zoom
-        const SUN_ROTATION_SPEED = 0.0005; // radians per frame (~24h per 24s at 60fps)
-        const NIGHT_COLOR = new THREE.Color(0x0a1628);
-        const DAY_COLOR = new THREE.Color(0xffffff);
-        const AMBIENT_COLOR = new THREE.Color(0x223355);
+        const EARTH_RADIUS = 4.5;
+        const SUN_RADIUS = 7;
+        const PLANET_SCALE = 0.9;
+
+        const ORBITS = {
+            mercury: 14,
+            venus: 20,
+            earth: 28,
+            mars: 36,
+            jupiter: 52,
+            saturn: 70,
+            uranus: 88,
+            neptune: 106,
+        };
+
+        const PLANET_SIZES = {
+            mercury: 0.6,
+            venus: 0.9,
+            earth: EARTH_RADIUS,
+            mars: 0.7,
+            jupiter: 3.2,
+            saturn: 2.7,
+            uranus: 1.7,
+            neptune: 1.5,
+        };
+
+        const PLANET_COLORS = {
+            mercury: '#b0b0b0',
+            venus: '#e8cda0',
+            mars: '#c1440e',
+            jupiter: '#d4a06a',
+            saturn: '#dac48e',
+            uranus: '#7ec8e3',
+            neptune: '#3e54e8',
+        };
+
+        const SUN_ROTATION_SPEED = 0.0004;
+        const ORBIT_SPEED_BASE = 0.0006;
 
         // ----- Scene Setup -----
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x05080f);
 
-        const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 2, 16);
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1200);
+        camera.position.set(18, 8, 32);
 
         const renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -112,56 +224,58 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.0;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.prepend(renderer.domElement);
 
         // ----- Controls -----
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.08;
-        controls.rotateSpeed = 0.6;
-        controls.zoomSpeed = 0.8;
-        controls.minDistance = EARTH_RADIUS + 0.5;
-        controls.maxDistance = MIN_ZOOM;
+        controls.rotateSpeed = 0.5;
+        controls.zoomSpeed = 0.7;
+        controls.minDistance = 6;
+        controls.maxDistance = 320;
         controls.target.set(0, 0, 0);
         controls.update();
 
-        // ----- Stars -----
+        // ----- Stars (with subtle color variation) -----
         function createStars() {
-            const count = 12000;
+            const count = 18000;
             const positions = new Float32Array(count * 3);
             const colors = new Float32Array(count * 3);
             const sizes = new Float32Array(count);
             for (let i = 0; i < count; i++) {
-                const radius = 80 + Math.random() * 120;
+                const radius = 120 + Math.random() * 300;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
                 positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
                 positions[i * 3 + 1] = radius * Math.cos(phi);
                 positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
-                const brightness = 0.3 + Math.random() * 0.7;
-                const tint = Math.random();
-                if (tint < 0.1) {
-                    colors[i * 3] = brightness * 0.8;
-                    colors[i * 3 + 1] = brightness * 0.7;
-                    colors[i * 3 + 2] = brightness * 1.0;
-                } else if (tint < 0.2) {
-                    colors[i * 3] = brightness * 1.0;
-                    colors[i * 3 + 1] = brightness * 0.9;
-                    colors[i * 3 + 2] = brightness * 0.7;
+                const b = 0.3 + Math.random() * 0.7;
+                const t = Math.random();
+                if (t < 0.08) {
+                    colors[i * 3] = b * 0.7;
+                    colors[i * 3 + 1] = b * 0.6;
+                    colors[i * 3 + 2] = b * 1.0;
+                } else if (t < 0.16) {
+                    colors[i * 3] = b * 1.0;
+                    colors[i * 3 + 1] = b * 0.85;
+                    colors[i * 3 + 2] = b * 0.6;
                 } else {
-                    colors[i * 3] = brightness;
-                    colors[i * 3 + 1] = brightness;
-                    colors[i * 3 + 2] = brightness;
+                    colors[i * 3] = b;
+                    colors[i * 3 + 1] = b;
+                    colors[i * 3 + 2] = b;
                 }
-                sizes[i] = 0.15 + Math.random() * 0.5;
+                sizes[i] = 0.12 + Math.random() * 0.6;
             }
             const geom = new THREE.BufferGeometry();
             geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
             geom.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
             const mat = new THREE.PointsMaterial({
-                size: 0.25,
+                size: 0.28,
                 vertexColors: true,
                 transparent: true,
                 opacity: 0.9,
@@ -173,10 +287,464 @@
             scene.add(stars);
             return stars;
         }
-        const stars = createStars();
+        createStars();
 
-        // ----- Texture Generation: Earth with borders from GeoJSON -----
-        async function createEarthTexture() {
+        // ----- Sun -----
+        function createSun() {
+            // Glow sprite
+            const glowTexture = (() => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 256;
+                canvas.height = 256;
+                const ctx = canvas.getContext('2d');
+                const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+                gradient.addColorStop(0, 'rgba(255,200,100,1)');
+                gradient.addColorStop(0.1, 'rgba(255,180,80,0.9)');
+                gradient.addColorStop(0.4, 'rgba(255,150,50,0.5)');
+                gradient.addColorStop(0.7, 'rgba(200,100,30,0.15)');
+                gradient.addColorStop(1, 'rgba(255,200,100,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 256, 256);
+                return new THREE.CanvasTexture(canvas);
+            })();
+
+            const glowMat = new THREE.SpriteMaterial({
+                map: glowTexture,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                transparent: true,
+                opacity: 1.0,
+            });
+            const glowSprite = new THREE.Sprite(glowMat);
+            glowSprite.scale.set(55, 55, 1);
+            scene.add(glowSprite);
+
+            // Sun sphere with procedural texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            // Base orange-yellow
+            const grad = ctx.createRadialGradient(512, 256, 50, 512, 256, 512);
+            grad.addColorStop(0, '#fff8e0');
+            grad.addColorStop(0.3, '#ffdd77');
+            grad.addColorStop(0.6, '#ffaa33');
+            grad.addColorStop(0.85, '#dd7722');
+            grad.addColorStop(1, '#aa5511');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 1024, 512);
+
+            // Add some solar texture (spots, granulation)
+            for (let i = 0; i < 600; i++) {
+                const x = Math.random() * 1024;
+                const y = Math.random() * 512;
+                const r = 1 + Math.random() * 8;
+                const a = 0.05 + Math.random() * 0.15;
+                const bright = Math.random() > 0.5;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fillStyle = bright ?
+                    `rgba(255,255,230,${a * 0.5})` :
+                    `rgba(180,120,60,${a * 0.4})`;
+                ctx.fill();
+            }
+            // Bright streaks
+            for (let i = 0; i < 40; i++) {
+                const x = Math.random() * 1024;
+                const y = Math.random() * 512;
+                const w = 3 + Math.random() * 20;
+                const h = 1 + Math.random() * 4;
+                ctx.fillStyle = `rgba(255,240,200,${0.03 + Math.random() * 0.06})`;
+                ctx.fillRect(x, y, w, h);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+            const mat = new THREE.MeshBasicMaterial({
+                map: texture,
+                color: 0xffdd88,
+            });
+            const geom = new THREE.SphereGeometry(SUN_RADIUS, 64, 64);
+            const mesh = new THREE.Mesh(geom, mat);
+            scene.add(mesh);
+
+            // Small inner glow
+            const innerGlow = new THREE.Sprite(
+                new THREE.SpriteMaterial({
+                    map: glowTexture,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    transparent: true,
+                    opacity: 0.6,
+                    color: 0xffaa44,
+                })
+            );
+            innerGlow.scale.set(22, 22, 1);
+            scene.add(innerGlow);
+
+            return { mesh, glowSprite, innerGlow };
+        }
+        const sun = createSun();
+
+        // ----- Procedural Planet Textures -----
+        function createPlanetTexture(baseColor, options = {}) {
+            const {
+                bands = false,
+                    bandColors = [],
+                    spots = false,
+                    spotCount = 0,
+                    swirls = false,
+                    craters = false,
+                    craterCount = 0,
+                    noise = false,
+                    noiseAmount = 0,
+            } = options;
+
+            const W = 1024,
+                H = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+
+            // Base color
+            const c = new THREE.Color(baseColor);
+            ctx.fillStyle = `rgb(${c.r*255|0},${c.g*255|0},${c.b*255|0})`;
+            ctx.fillRect(0, 0, W, H);
+
+            // Bands (Jupiter, Saturn)
+            if (bands && bandColors.length > 0) {
+                for (let i = 0; i < 30; i++) {
+                    const y = Math.random() * H;
+                    const h = 5 + Math.random() * 35;
+                    const col = bandColors[Math.floor(Math.random() * bandColors.length)];
+                    const colObj = new THREE.Color(col);
+                    const alpha = 0.2 + Math.random() * 0.5;
+                    ctx.fillStyle =
+                        `rgba(${colObj.r*255|0},${colObj.g*255|0},${colObj.b*255|0},${alpha})`;
+                    ctx.fillRect(0, y, W, h);
+                }
+                // Smear bands horizontally
+                for (let i = 0; i < 80; i++) {
+                    const y = Math.random() * H;
+                    const x = Math.random() * W;
+                    const w = 20 + Math.random() * 120;
+                    const h = 2 + Math.random() * 20;
+                    const col = bandColors[Math.floor(Math.random() * bandColors.length)];
+                    const colObj = new THREE.Color(col);
+                    ctx.fillStyle =
+                        `rgba(${colObj.r*255|0},${colObj.g*255|0},${colObj.b*255|0},${0.1+Math.random()*0.3})`;
+                    ctx.fillRect(x, y, w, h);
+                }
+            }
+
+            // Spots (Jupiter's Great Red Spot, etc.)
+            if (spots) {
+                for (let i = 0; i < spotCount; i++) {
+                    const x = Math.random() * W;
+                    const y = Math.random() * H;
+                    const r = 5 + Math.random() * 40;
+                    const col = new THREE.Color(baseColor).multiplyScalar(0.5 + Math.random() * 0.6);
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fillStyle =
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.3+Math.random()*0.5})`;
+                    ctx.fill();
+                    // Highlight
+                    ctx.beginPath();
+                    ctx.arc(x - r * 0.2, y - r * 0.2, r * 0.3, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,240,${0.05+Math.random()*0.15})`;
+                    ctx.fill();
+                }
+            }
+
+            // Craters (Mercury, Moon)
+            if (craters) {
+                for (let i = 0; i < craterCount; i++) {
+                    const x = Math.random() * W;
+                    const y = Math.random() * H;
+                    const r = 2 + Math.random() * 15;
+                    const col = new THREE.Color(baseColor).multiplyScalar(0.5 + Math.random() * 0.4);
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fillStyle =
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.3+Math.random()*0.5})`;
+                    ctx.fill();
+                    // Rim highlight
+                    ctx.beginPath();
+                    ctx.arc(x - r * 0.2, y - r * 0.3, r * 0.9, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255,255,255,${0.05+Math.random()*0.1})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+
+            // Swirls (Venus, Uranus, Neptune)
+            if (swirls) {
+                for (let i = 0; i < 120; i++) {
+                    const x = Math.random() * W;
+                    const y = Math.random() * H;
+                    const w = 10 + Math.random() * 60;
+                    const h = 2 + Math.random() * 12;
+                    const angle = Math.random() * Math.PI * 2;
+                    const col = new THREE.Color(baseColor).multiplyScalar(0.7 + Math.random() * 0.5);
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(angle);
+                    ctx.fillStyle =
+                        `rgba(${col.r*255|0},${col.g*255|0},${col.b*255|0},${0.05+Math.random()*0.2})`;
+                    ctx.fillRect(-w / 2, -h / 2, w, h);
+                    ctx.restore();
+                }
+            }
+
+            // Noise
+            if (noise) {
+                const imageData = ctx.getImageData(0, 0, W, H);
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    const n = (Math.random() - 0.5) * noiseAmount * 255;
+                    data[i] = Math.min(255, Math.max(0, data[i] + n));
+                    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + n));
+                    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + n));
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            return texture;
+        }
+
+        // ----- Create Planets -----
+        const planets = {};
+        const orbitLines = [];
+        const planetMeshes = [];
+
+        function createOrbitPath(radius, color = 0x334466, opacity = 0.2) {
+            const points = [];
+            const segments = 120;
+            for (let i = 0; i <= segments; i++) {
+                const angle = (i / segments) * Math.PI * 2;
+                points.push(new THREE.Vector3(
+                    radius * Math.cos(angle),
+                    0,
+                    radius * Math.sin(angle)
+                ));
+            }
+            const geom = new THREE.BufferGeometry().setFromPoints(points);
+            const mat = new THREE.LineBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: opacity,
+                depthWrite: false,
+            });
+            const line = new THREE.Line(geom, mat);
+            scene.add(line);
+            return line;
+        }
+
+        function createPlanet(name, radius, orbitRadius, color, options = {}) {
+            const {
+                bands = false,
+                    bandColors = [],
+                    spots = false,
+                    spotCount = 0,
+                    swirls = false,
+                    craters = false,
+                    craterCount = 0,
+                    noise = false,
+                    noiseAmount = 0,
+                    emissive = false,
+                    emissiveColor = null,
+                    rings = false,
+                    ringColor = '#c8b88a',
+                    ringInner = 1.3,
+                    ringOuter = 2.2,
+                    tilt = 0,
+            } = options;
+
+            // Texture
+            const tex = createPlanetTexture(color, {
+                bands,
+                bandColors,
+                spots,
+                spotCount,
+                swirls,
+                craters,
+                craterCount,
+                noise,
+                noiseAmount,
+            });
+
+            const mat = new THREE.MeshStandardMaterial({
+                map: tex,
+                roughness: 0.6 + Math.random() * 0.3,
+                metalness: 0.05 + Math.random() * 0.15,
+                emissive: emissive ? new THREE.Color(emissiveColor) : new THREE.Color(0x000000),
+                emissiveIntensity: emissive ? 0.1 : 0,
+            });
+
+            const geom = new THREE.SphereGeometry(radius, 64, 64);
+            const mesh = new THREE.Mesh(geom, mat);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            // Random starting angle
+            const startAngle = Math.random() * Math.PI * 2;
+            mesh.position.x = orbitRadius * Math.cos(startAngle);
+            mesh.position.z = orbitRadius * Math.sin(startAngle);
+            if (tilt) {
+                mesh.rotation.x = tilt;
+            }
+
+            scene.add(mesh);
+
+            // Rings (Saturn)
+            let ringMesh = null;
+            if (rings) {
+                const ringGeo = new THREE.RingGeometry(
+                    radius * ringInner,
+                    radius * ringOuter,
+                    96
+                );
+                const ringTex = (() => {
+                    const c = document.createElement('canvas');
+                    c.width = 512;
+                    c.height = 64;
+                    const ctx = c.getContext('2d');
+                    const col = new THREE.Color(ringColor);
+                    for (let x = 0; x < 512; x++) {
+                        const v = 0.5 + 0.5 * Math.sin(x * 0.05) * 0.3 +
+                            0.5 * Math.sin(x * 0.12 + 1.2) * 0.15;
+                        const bright = 0.3 + v * 0.6;
+                        const r = col.r * bright * 255 | 0;
+                        const g = col.g * bright * 255 | 0;
+                        const b = col.b * bright * 255 | 0;
+                        const alpha = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(x * 0.07 + 0.5));
+                        ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+                        ctx.fillRect(x, 0, 1, 64);
+                    }
+                    // Add some gaps
+                    for (let i = 0; i < 8; i++) {
+                        const x = 50 + Math.random() * 400;
+                        ctx.fillStyle = `rgba(0,0,0,${0.2+Math.random()*0.3})`;
+                        ctx.fillRect(x, 0, 3 + Math.random() * 6, 64);
+                    }
+                    return new THREE.CanvasTexture(c);
+                })();
+
+                const ringMat = new THREE.MeshBasicMaterial({
+                    map: ringTex,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.85,
+                    depthWrite: false,
+                });
+                ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                ringMesh.rotation.x = Math.PI / 2.4 + tilt;
+                ringMesh.position.copy(mesh.position);
+                scene.add(ringMesh);
+            }
+
+            // Orbit line
+            const orbitColor = new THREE.Color(color).multiplyScalar(1.5);
+            const orbitLine = createOrbitPath(orbitRadius, orbitColor, 0.15);
+
+            const data = {
+                mesh,
+                ringMesh,
+                orbitLine,
+                orbitRadius,
+                radius,
+                angle: startAngle,
+                speed: ORBIT_SPEED_BASE * (1 / (orbitRadius * 0.04 + 0.3)),
+                name,
+                tilt,
+                startAngle,
+            };
+
+            planets[name] = data;
+            planetMeshes.push(mesh);
+            orbitLines.push(orbitLine);
+
+            return data;
+        }
+
+        // ----- Build Solar System -----
+
+        // Mercury
+        createPlanet('mercury', PLANET_SIZES.mercury, ORBITS.mercury, PLANET_COLORS.mercury, {
+            craters: true,
+            craterCount: 120,
+            noise: true,
+            noiseAmount: 0.08,
+        });
+
+        // Venus
+        createPlanet('venus', PLANET_SIZES.venus, ORBITS.venus, PLANET_COLORS.venus, {
+            swirls: true,
+            noise: true,
+            noiseAmount: 0.05,
+        });
+
+        // Earth – will be created separately with custom shader
+
+        // Mars
+        createPlanet('mars', PLANET_SIZES.mars, ORBITS.mars, PLANET_COLORS.mars, {
+            craters: true,
+            craterCount: 60,
+            noise: true,
+            noiseAmount: 0.1,
+            spots: true,
+            spotCount: 10,
+        });
+
+        // Jupiter
+        createPlanet('jupiter', PLANET_SIZES.jupiter, ORBITS.jupiter, PLANET_COLORS.jupiter, {
+            bands: true,
+            bandColors: ['#d4a06a', '#c89050', '#e8c090', '#b07840', '#f0d8b0', '#a06830'],
+            spots: true,
+            spotCount: 15,
+        });
+
+        // Saturn
+        createPlanet('saturn', PLANET_SIZES.saturn, ORBITS.saturn, PLANET_COLORS.saturn, {
+            bands: true,
+            bandColors: ['#dac48e', '#c8b078', '#e8d8a0', '#b09860', '#f0e0b0'],
+            rings: true,
+            ringColor: '#d4c09a',
+            ringInner: 1.2,
+            ringOuter: 2.4,
+            tilt: 0.4,
+        });
+
+        // Uranus
+        createPlanet('uranus', PLANET_SIZES.uranus, ORBITS.uranus, PLANET_COLORS.uranus, {
+            swirls: true,
+            noise: true,
+            noiseAmount: 0.04,
+            tilt: 1.6,
+        });
+
+        // Neptune
+        createPlanet('neptune', PLANET_SIZES.neptune, ORBITS.neptune, PLANET_COLORS.neptune, {
+            swirls: true,
+            noise: true,
+            noiseAmount: 0.06,
+        });
+
+        // ----- Earth (with custom day/night shader & borders) -----
+        let earthUniforms = null;
+        let earthMesh = null;
+        let earthPosition = new THREE.Vector3(ORBITS.earth, 0, 0);
+
+        async function createEarth() {
+            // Load Earth texture with borders
             const canvas = document.createElement('canvas');
             const W = 4096;
             const H = 2048;
@@ -184,7 +752,6 @@
             canvas.height = H;
             const ctx = canvas.getContext('2d');
 
-            // 1. Load base Earth texture
             const img = await new Promise((resolve, reject) => {
                 const imgObj = new Image();
                 imgObj.crossOrigin = 'anonymous';
@@ -193,166 +760,133 @@
                 imgObj.src = 'https://unpkg.com/three-globe@2.24.8/example/img/earth-blue-marble.jpg';
             });
 
-            // Draw the Earth image
             ctx.drawImage(img, 0, 0, W, H);
 
-            // 2. Load GeoJSON for country borders
-            const geoResp = await fetch(
-                'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
-            );
-            const geoData = await geoResp.json();
+            // Borders
+            try {
+                const geoResp = await fetch(
+                    'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
+                );
+                const geoData = await geoResp.json();
 
-            // 3. Draw borders
-            ctx.strokeStyle = 'rgba(180, 200, 230, 0.55)';
-            ctx.lineWidth = 1.8;
+                ctx.strokeStyle = 'rgba(180, 200, 230, 0.5)';
+                ctx.lineWidth = 1.6;
 
-            // For islands and smaller features, use slightly thinner lines
-            const features = geoData.features || [];
-
-            // Helper: project [lng, lat] to canvas coords
-            function project(lng, lat) {
-                const x = (lng + 180) / 360 * W;
-                const y = (90 - lat) / 180 * H;
-                return [x, y];
-            }
-
-            // Draw a polygon path
-            function drawPolygon(coords, close = true) {
-                if (!coords || coords.length < 3) return;
-                const first = project(coords[0][0], coords[0][1]);
-                ctx.beginPath();
-                ctx.moveTo(first[0], first[1]);
-                for (let i = 1; i < coords.length; i++) {
-                    const p = project(coords[i][0], coords[i][1]);
-                    ctx.lineTo(p[0], p[1]);
+                function project(lng, lat) {
+                    return [(lng + 180) / 360 * W, (90 - lat) / 180 * H];
                 }
-                if (close) ctx.closePath();
-                ctx.stroke();
-            }
 
-            // Draw a feature (handles Polygon and MultiPolygon)
-            function drawFeature(geometry) {
-                if (!geometry) return;
-                if (geometry.type === 'Polygon') {
-                    // Outer ring
-                    drawPolygon(geometry.coordinates[0], true);
-                    // Inner rings (holes)
-                    for (let i = 1; i < geometry.coordinates.length; i++) {
-                        drawPolygon(geometry.coordinates[i], true);
+                function drawPolygon(coords, close = true) {
+                    if (!coords || coords.length < 3) return;
+                    const first = project(coords[0][0], coords[0][1]);
+                    ctx.beginPath();
+                    ctx.moveTo(first[0], first[1]);
+                    for (let i = 1; i < coords.length; i++) {
+                        const p = project(coords[i][0], coords[i][1]);
+                        ctx.lineTo(p[0], p[1]);
                     }
-                } else if (geometry.type === 'MultiPolygon') {
-                    for (const poly of geometry.coordinates) {
-                        drawPolygon(poly[0], true);
-                        for (let i = 1; i < poly.length; i++) {
-                            drawPolygon(poly[i], true);
+                    if (close) ctx.closePath();
+                    ctx.stroke();
+                }
+
+                function drawFeature(geometry) {
+                    if (!geometry) return;
+                    if (geometry.type === 'Polygon') {
+                        drawPolygon(geometry.coordinates[0], true);
+                        for (let i = 1; i < geometry.coordinates.length; i++) {
+                            drawPolygon(geometry.coordinates[i], true);
+                        }
+                    } else if (geometry.type === 'MultiPolygon') {
+                        for (const poly of geometry.coordinates) {
+                            drawPolygon(poly[0], true);
+                            for (let i = 1; i < poly.length; i++) {
+                                drawPolygon(poly[i], true);
+                            }
                         }
                     }
                 }
-            }
 
-            // Draw all features
-            for (const feature of features) {
-                if (feature.geometry) {
-                    drawFeature(feature.geometry);
+                const features = geoData.features || [];
+                for (const feature of features) {
+                    if (feature.geometry) drawFeature(feature.geometry);
                 }
-            }
 
-            // 4. Draw a subtle graticule (latitude/longitude lines) for better depth
-            ctx.strokeStyle = 'rgba(100, 150, 200, 0.08)';
-            ctx.lineWidth = 0.5;
-            // Lat lines every 30°
-            for (let lat = -90; lat <= 90; lat += 30) {
-                const y = (90 - lat) / 180 * H;
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(W, y);
-                ctx.stroke();
+                // Graticule
+                ctx.strokeStyle = 'rgba(100, 150, 200, 0.06)';
+                ctx.lineWidth = 0.5;
+                for (let lat = -90; lat <= 90; lat += 30) {
+                    const y = (90 - lat) / 180 * H;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(W, y);
+                    ctx.stroke();
+                }
+                for (let lng = -180; lng <= 180; lng += 30) {
+                    const x = (lng + 180) / 360 * W;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, H);
+                    ctx.stroke();
+                }
+            } catch (e) {
+                console.warn('Borders load skipped:', e);
             }
-            // Lng lines every 30°
-            for (let lng = -180; lng <= 180; lng += 30) {
-                const x = (lng + 180) / 360 * W;
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, H);
-                ctx.stroke();
-            }
-
-            // 5. Add a subtle glow around coastlines (optional)
-            // Already done via the border lines
 
             const texture = new THREE.CanvasTexture(canvas);
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
             texture.minFilter = THREE.LinearMipmapLinearFilter;
             texture.magFilter = THREE.LinearFilter;
             texture.generateMipmaps = true;
-            return texture;
-        }
 
-        // ----- Create Earth with ShaderMaterial (Day/Night) -----
-        let earthMesh;
-
-        async function createEarth() {
-            const texture = await createEarthTexture();
-
-            // Custom shader for day/night
+            // Shader
             const vertexShader = `
-                varying vec3 vNormal;
-                varying vec2 vUv;
-                varying vec3 vPosition;
-                void main() {
-                    vNormal = normalize(normalMatrix * normal);
-                    vUv = uv;
-                    vec4 worldPos = modelMatrix * vec4(position, 1.0);
-                    vPosition = worldPos.xyz;
-                    gl_Position = projectionMatrix * viewMatrix * worldPos;
-                }
-            `;
+                    varying vec3 vNormal;
+                    varying vec2 vUv;
+                    varying vec3 vPosition;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        vUv = uv;
+                        vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                        vPosition = worldPos.xyz;
+                        gl_Position = projectionMatrix * viewMatrix * worldPos;
+                    }
+                `;
 
             const fragmentShader = `
-                uniform sampler2D earthTexture;
-                uniform vec3 sunDirection;
-                uniform vec3 nightColor;
-                uniform vec3 dayColor;
-                uniform vec3 ambientColor;
-                uniform float nightBrightness;
+                    uniform sampler2D earthTexture;
+                    uniform vec3 sunDirection;
+                    uniform vec3 nightColor;
+                    uniform vec3 dayColor;
+                    uniform vec3 ambientColor;
+                    uniform float nightBrightness;
 
-                varying vec3 vNormal;
-                varying vec2 vUv;
-                varying vec3 vPosition;
+                    varying vec3 vNormal;
+                    varying vec2 vUv;
+                    varying vec3 vPosition;
 
-                void main() {
-                    vec4 texColor = texture2D(earthTexture, vUv);
-                    vec3 normal = normalize(vNormal);
+                    void main() {
+                        vec4 texColor = texture2D(earthTexture, vUv);
+                        vec3 normal = normalize(vNormal);
+                        float sunIntensity = dot(normal, normalize(sunDirection));
+                        float dayFactor = smoothstep(-0.15, 0.45, sunIntensity);
 
-                    // Sun intensity: dot product of normal and sun direction
-                    float sunIntensity = dot(normal, normalize(sunDirection));
-                    // Smooth transition with a wider terminator
-                    float dayFactor = smoothstep(-0.15, 0.45, sunIntensity);
+                        vec3 nightCol = nightColor * nightBrightness;
+                        nightCol += ambientColor * 0.15;
 
-                    // Night color with some visibility (cities/ambient)
-                    vec3 nightCol = nightColor * nightBrightness;
-                    // Add a subtle blue ambient
-                    nightCol += ambientColor * 0.15;
+                        vec3 dayCol = texColor.rgb * dayColor;
 
-                    // Day color: texture with slight warmth
-                    vec3 dayCol = texColor.rgb * dayColor;
+                        vec3 finalColor = mix(nightCol, dayCol, dayFactor);
 
-                    // Mix day and night
-                    vec3 finalColor = mix(nightCol, dayCol, dayFactor);
+                        float rim = 1.0 - abs(sunIntensity);
+                        float cityGlow = smoothstep(0.2, 0.7, rim) * 0.05;
+                        finalColor += vec3(0.6, 0.5, 0.2) * cityGlow * nightBrightness;
 
-                    // Add a subtle rim glow on the night side (city lights effect)
-                    float rim = 1.0 - abs(sunIntensity);
-                    float cityGlow = smoothstep(0.2, 0.7, rim) * 0.06;
-                    finalColor += vec3(0.6, 0.5, 0.2) * cityGlow * nightBrightness;
+                        float terminatorGlow = exp(-pow(abs(sunIntensity) / 0.3, 2.0)) * 0.035;
+                        finalColor += vec3(0.3, 0.5, 0.8) * terminatorGlow;
 
-                    // Slight atmosphere scattering at terminator
-                    float terminatorGlow = exp(-pow(abs(sunIntensity) / 0.3, 2.0)) * 0.04;
-                    finalColor += vec3(0.3, 0.5, 0.8) * terminatorGlow;
-
-                    // Output
-                    gl_FragColor = vec4(finalColor, 1.0);
-                }
-            `;
+                        gl_FragColor = vec4(finalColor, 1.0);
+                    }
+                `;
 
             const uniforms = {
                 earthTexture: { value: texture },
@@ -372,100 +906,138 @@
             });
 
             const geometry = new THREE.SphereGeometry(EARTH_RADIUS, 128, 128);
-            earthMesh = new THREE.Mesh(geometry, material);
-            scene.add(earthMesh);
+            const mesh = new THREE.Mesh(geometry, material);
+            const startAngle = Math.random() * Math.PI * 2;
+            mesh.position.x = ORBITS.earth * Math.cos(startAngle);
+            mesh.position.z = ORBITS.earth * Math.sin(startAngle);
+            scene.add(mesh);
 
-            return { mesh: earthMesh, uniforms };
-        }
+            earthMesh = mesh;
+            earthUniforms = uniforms;
+            earthPosition.copy(mesh.position);
 
-        // ----- Atmosphere Glow -----
-        function createAtmosphere() {
-            const vertexShader = `
-                varying vec3 vNormal;
-                void main() {
-                    vNormal = normalize(normalMatrix * normal);
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-            `;
-            const fragmentShader = `
-                varying vec3 vNormal;
-                uniform vec3 glowColor;
-                uniform float intensity;
-                void main() {
-                    float glow = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
-                    gl_FragColor = vec4(glowColor, glow * intensity);
-                }
-            `;
+            // Earth orbit
+            const earthOrbit = createOrbitPath(ORBITS.earth, 0x4488cc, 0.2);
+            orbitLines.push(earthOrbit);
 
-            const uniforms = {
+            // Store earth data
+            planets.earth = {
+                mesh,
+                orbitLine: earthOrbit,
+                orbitRadius: ORBITS.earth,
+                radius: EARTH_RADIUS,
+                angle: startAngle,
+                speed: ORBIT_SPEED_BASE * (1 / (ORBITS.earth * 0.04 + 0.3)),
+                name: 'earth',
+                tilt: 0,
+                startAngle,
+                isEarth: true,
+            };
+            planetMeshes.push(mesh);
+
+            // Atmosphere glow
+            const atmVert = `
+                    varying vec3 vNormal;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `;
+            const atmFrag = `
+                    varying vec3 vNormal;
+                    uniform vec3 glowColor;
+                    uniform float intensity;
+                    void main() {
+                        float glow = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
+                        gl_FragColor = vec4(glowColor, glow * intensity);
+                    }
+                `;
+            const atmUniforms = {
                 glowColor: { value: new THREE.Color(0x4488ff) },
                 intensity: { value: 0.35 },
             };
-
-            const material = new THREE.ShaderMaterial({
-                uniforms: uniforms,
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader,
+            const atmMat = new THREE.ShaderMaterial({
+                uniforms: atmUniforms,
+                vertexShader: atmVert,
+                fragmentShader: atmFrag,
                 side: THREE.FrontSide,
                 transparent: true,
                 blending: THREE.AdditiveBlending,
                 depthWrite: false,
             });
+            const atmGeo = new THREE.SphereGeometry(EARTH_RADIUS * 1.025, 64, 64);
+            const atmMesh = new THREE.Mesh(atmGeo, atmMat);
+            atmMesh.position.copy(mesh.position);
+            scene.add(atmMesh);
+            planets.earth.atmosphere = atmMesh;
 
-            const geometry = new THREE.SphereGeometry(EARTH_RADIUS * 1.025, 64, 64);
-            const atmosphere = new THREE.Mesh(geometry, material);
-            scene.add(atmosphere);
-            return atmosphere;
-        }
-
-        // ----- Outer glow ring (subtle) -----
-        function createOuterGlow() {
-            const vertexShader = `
-                varying vec3 vNormal;
-                void main() {
-                    vNormal = normalize(normalMatrix * normal);
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-            `;
-            const fragmentShader = `
-                varying vec3 vNormal;
-                uniform vec3 glowColor;
-                uniform float intensity;
-                void main() {
-                    float glow = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
-                    gl_FragColor = vec4(glowColor, glow * intensity * 0.5);
-                }
-            `;
-            const uniforms = {
+            // Outer glow
+            const outVert = `
+                    varying vec3 vNormal;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `;
+            const outFrag = `
+                    varying vec3 vNormal;
+                    uniform vec3 glowColor;
+                    uniform float intensity;
+                    void main() {
+                        float glow = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
+                        gl_FragColor = vec4(glowColor, glow * intensity * 0.5);
+                    }
+                `;
+            const outUniforms = {
                 glowColor: { value: new THREE.Color(0x2266cc) },
                 intensity: { value: 0.2 },
             };
-            const material = new THREE.ShaderMaterial({
-                uniforms: uniforms,
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader,
+            const outMat = new THREE.ShaderMaterial({
+                uniforms: outUniforms,
+                vertexShader: outVert,
+                fragmentShader: outFrag,
                 side: THREE.FrontSide,
                 transparent: true,
                 blending: THREE.AdditiveBlending,
                 depthWrite: false,
             });
-            const geometry = new THREE.SphereGeometry(EARTH_RADIUS * 1.08, 48, 48);
-            const glow = new THREE.Mesh(geometry, material);
-            scene.add(glow);
-            return glow;
+            const outGeo = new THREE.SphereGeometry(EARTH_RADIUS * 1.08, 48, 48);
+            const outMesh = new THREE.Mesh(outGeo, outMat);
+            outMesh.position.copy(mesh.position);
+            scene.add(outMesh);
+            planets.earth.outerGlow = outMesh;
+
+            return { mesh, uniforms };
         }
 
-        // ----- Build the scene -----
-        let earthUniforms = null;
-        let earthMeshRef = null;
+        // ----- Earth Button & Camera Target -----
+        let isAnimatingToEarth = false;
+        let animStart = 0;
+        let animDuration = 1200;
+        let animStartPos = new THREE.Vector3();
+        let animEndPos = new THREE.Vector3();
+        let animStartTarget = new THREE.Vector3();
+        let animEndTarget = new THREE.Vector3();
 
-        async function initEarth() {
-            const result = await createEarth();
-            earthMeshRef = result.mesh;
-            earthUniforms = result.uniforms;
+        const earthBtn = document.getElementById('earth-btn');
+
+        function flyToEarth() {
+            if (!earthMesh) return;
+            const earthPos = earthMesh.position.clone();
+            const offset = new THREE.Vector3(6, 4, 10);
+            const targetPos = earthPos.clone().add(offset);
+
+            animStartPos.copy(camera.position);
+            animEndPos.copy(targetPos);
+            animStartTarget.copy(controls.target);
+            animEndTarget.copy(earthPos);
+            isAnimatingToEarth = true;
+            animStart = performance.now();
         }
 
-        // ----- Time display (real-time UTC) -----
+        earthBtn.addEventListener('click', flyToEarth);
+
+        // ----- Time Display -----
         function updateTimeDisplay() {
             const now = new Date();
             const utc = now.toUTCString().split(' ')[4];
@@ -474,56 +1046,176 @@
         updateTimeDisplay();
         setInterval(updateTimeDisplay, 1000);
 
-        // ----- Start everything -----
-        let ready = false;
+        // ----- Label update -----
+        const labelEl = document.getElementById('planet-label');
 
-        async function init() {
-            await initEarth();
-            createAtmosphere();
-            createOuterGlow();
-            ready = true;
-
-            // Initial sun direction based on time
-            const now = new Date();
-            const hours = now.getUTCHours() + now.getUTCMinutes() / 60;
-            const angle = (hours / 24) * Math.PI * 2;
-            const sunDir = new THREE.Vector3(
-                Math.cos(angle) * 0.8,
-                Math.sin(angle * 0.5) * 0.3 + 0.2,
-                Math.sin(angle) * 0.8
-            ).normalize();
-            if (earthUniforms) {
-                earthUniforms.sunDirection.value.copy(sunDir);
+        function updateLabel(distToEarth) {
+            const threshold = 35;
+            if (distToEarth < threshold) {
+                labelEl.textContent = '✦ Earth';
+                labelEl.style.opacity = '1';
+            } else {
+                const planets_list = Object.keys(planets).filter(p => p !== 'earth');
+                // Find closest planet
+                let closest = null;
+                let closestDist = Infinity;
+                for (const name of planets_list) {
+                    const p = planets[name];
+                    if (!p || !p.mesh) continue;
+                    const d = camera.position.distanceTo(p.mesh.position);
+                    if (d < closestDist) {
+                        closestDist = d;
+                        closest = name;
+                    }
+                }
+                if (closest && closestDist < 60) {
+                    const names = {
+                        mercury: '☿ Mercury',
+                        venus: '♀ Venus',
+                        mars: '♂ Mars',
+                        jupiter: '♃ Jupiter',
+                        saturn: '♄ Saturn',
+                        uranus: '⛢ Uranus',
+                        neptune: '♆ Neptune',
+                    };
+                    labelEl.textContent = '✦ ' + (names[closest] || closest);
+                    labelEl.style.opacity = '0.7';
+                } else {
+                    labelEl.textContent = '✦ Solar System';
+                    labelEl.style.opacity = '0.4';
+                }
             }
+        }
 
-            animate();
+        // ----- Init Earth -----
+        let earthReady = false;
+
+        async function initEarth() {
+            try {
+                await createEarth();
+                earthReady = true;
+                // Set initial sun direction based on time
+                const now = new Date();
+                const hours = now.getUTCHours() + now.getUTCMinutes() / 60;
+                const angle = (hours / 24) * Math.PI * 2;
+                const sunDir = new THREE.Vector3(
+                    Math.cos(angle) * 0.8,
+                    Math.sin(angle * 0.5) * 0.3 + 0.2,
+                    Math.sin(angle) * 0.8
+                ).normalize();
+                if (earthUniforms) {
+                    earthUniforms.sunDirection.value.copy(sunDir);
+                }
+                // Update camera to look at Earth initially
+                if (earthMesh) {
+                    const ep = earthMesh.position.clone();
+                    controls.target.copy(ep);
+                    camera.position.set(ep.x + 10, ep.y + 5, ep.z + 16);
+                    controls.update();
+                }
+                animate();
+            } catch (err) {
+                console.error('Earth init error:', err);
+                // Fallback: show error but still animate
+                earthReady = true;
+                animate();
+            }
         }
 
         // ----- Animation Loop -----
+        let frameCount = 0;
+
         function animate() {
             requestAnimationFrame(animate);
+            frameCount++;
 
-            // Rotate sun (real-time)
-            if (earthUniforms && ready) {
-                const dir = earthUniforms.sunDirection.value;
-                // Rotate around Y axis slowly
-                const speed = SUN_ROTATION_SPEED;
-                const cos = Math.cos(speed);
-                const sin = Math.sin(speed);
-                const x = dir.x * cos + dir.z * sin;
-                const z = -dir.x * sin + dir.z * cos;
-                dir.x = x;
-                dir.z = z;
-                // Keep a slight vertical wobble for realism
-                dir.y += Math.sin(Date.now() * 0.000005) * 0.00002;
-                dir.normalize();
+            // ----- Animate orbits -----
+            for (const name in planets) {
+                const data = planets[name];
+                if (!data || !data.mesh) continue;
+                // Update angle
+                data.angle += data.speed;
+                const x = data.orbitRadius * Math.cos(data.angle);
+                const z = data.orbitRadius * Math.sin(data.angle);
+                data.mesh.position.set(x, 0, z);
+
+                // Self rotation
+                data.mesh.rotation.y += 0.005;
+
+                // Update earth position
+                if (name === 'earth') {
+                    earthPosition.copy(data.mesh.position);
+                    if (data.atmosphere) {
+                        data.atmosphere.position.copy(data.mesh.position);
+                    }
+                    if (data.outerGlow) {
+                        data.outerGlow.position.copy(data.mesh.position);
+                    }
+                    // Update sun direction for Earth shader
+                    if (earthUniforms) {
+                        const dir = earthUniforms.sunDirection.value;
+                        const speed = SUN_ROTATION_SPEED;
+                        const cos = Math.cos(speed);
+                        const sin = Math.sin(speed);
+                        const x2 = dir.x * cos + dir.z * sin;
+                        const z2 = -dir.x * sin + dir.z * cos;
+                        dir.x = x2;
+                        dir.z = z2;
+                        dir.y += Math.sin(Date.now() * 0.000005) * 0.00002;
+                        dir.normalize();
+                    }
+                }
+
+                // Update ring if present
+                if (data.ringMesh) {
+                    data.ringMesh.position.copy(data.mesh.position);
+                    data.ringMesh.rotation.z += 0.001;
+                }
+            }
+
+            // ----- Sun rotation -----
+            sun.mesh.rotation.y += 0.0008;
+
+            // ----- Camera target: smooth transition between Earth and Sun -----
+            if (!isAnimatingToEarth && earthMesh) {
+                const distToEarth = camera.position.distanceTo(earthPosition);
+                const blend = Math.min(1, Math.max(0, (distToEarth - 25) / 45));
+                // blend: 0 = Earth, 1 = Sun
+                const target = new THREE.Vector3().lerpVectors(
+                    earthPosition,
+                    new THREE.Vector3(0, 0, 0),
+                    blend
+                );
+                controls.target.lerp(target, 0.06);
+
+                // Update label
+                updateLabel(distToEarth);
+            }
+
+            // ----- Earth button animation -----
+            if (isAnimatingToEarth) {
+                const elapsed = performance.now() - animStart;
+                const t = Math.min(1, elapsed / animDuration);
+                // Ease in-out cubic
+                const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+                camera.position.lerpVectors(animStartPos, animEndPos, ease);
+                controls.target.lerpVectors(animStartTarget, animEndTarget, ease);
+
+                if (t >= 1) {
+                    isAnimatingToEarth = false;
+                    controls.target.copy(animEndTarget);
+                }
+                // Update label during animation
+                const dist = camera.position.distanceTo(earthPosition);
+                updateLabel(dist);
             }
 
             controls.update();
             renderer.render(scene, camera);
         }
 
-        // ----- Resize Handler -----
+        // ----- Resize -----
         window.addEventListener('resize', () => {
             const w = window.innerWidth;
             const h = window.innerHeight;
@@ -532,24 +1224,27 @@
             renderer.setSize(w, h);
         });
 
-        // ----- Start -----
-        init().catch(err => {
-            console.error('Init error:', err);
-            // Fallback: show error
-            document.body.innerHTML = `
-                <div style="color:white;font-family:sans-serif;padding:40px;text-align:center;">
-                    <h2>🌍 Loading Error</h2>
-                    <p style="color:#aaa;">Please check your internet connection and reload.</p>
-                    <p style="color:#666;font-size:14px;margin-top:20px;">${err.message}</p>
-                </div>
-            `;
+        // ----- Keyboard shortcut: E for Earth -----
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'e' || e.key === 'E') {
+                flyToEarth();
+            }
         });
 
-        // Expose controls for debugging
-        window.__controls = controls;
-        window.__scene = scene;
+        // ----- Start -----
+        initEarth().catch(err => {
+            console.error('Init error:', err);
+            document.body.innerHTML = `
+                    <div style="color:white;font-family:sans-serif;padding:40px;text-align:center;">
+                        <h2>🌍 Loading Error</h2>
+                        <p style="color:#aaa;">Please check your internet connection and reload.</p>
+                        <p style="color:#666;font-size:14px;margin-top:20px;">${err.message}</p>
+                    </div>
+                `;
+        });
 
-        console.log('🌍 Earth Globe initialized — Drag to rotate, scroll to zoom.');
+        console.log('🌌 Solar System ready — Drag to orbit, scroll to zoom. Press "E" or click "Earth" to return.');
+        console.log('🪐 Planets: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune');
     </script>
 </body>
 </html>
