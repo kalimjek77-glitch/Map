@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🌕 HD Solar System – Moons & Satellites</title>
+    <title>🌕 HD Solar System – Earth's Moon</title>
     <style>
         * {
             margin: 0;
@@ -218,7 +218,8 @@
 
         // ----- CAMERA -----
         const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1200);
-        camera.position.set(35, 18, 60);
+        // Start closer to Earth to see the Moon
+        camera.position.set(22, 8, 28);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -237,7 +238,8 @@
         controls.zoomSpeed = 0.7;
         controls.minDistance = 4;
         controls.maxDistance = 400;
-        controls.target.set(0, 0, 0);
+        // Initially target Earth (will be updated after Earth is created)
+        controls.target.set(ORBITS.earth, 0, 0);
         controls.update();
 
         // ----- STARS (HD) -----
@@ -1433,10 +1435,10 @@
         const moons = [];
         const satellites = [];
 
-        // Function to create a moon texture (gray with craters)
-        function createMoonTexture(baseColor = '#aaaaaa', craterCount = 80) {
-            const W = 1024,
-                H = 512;
+        // Function to create a moon texture (gray with craters) - HD version
+        function createMoonTexture(baseColor = '#aaaaaa', craterCount = 120) {
+            const W = 2048, // higher resolution for moon
+                H = 1024;
             const canvas = document.createElement('canvas');
             canvas.width = W;
             canvas.height = H;
@@ -1453,12 +1455,12 @@
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, W, H);
 
-            // Add craters
+            // Add many craters for realism
             for (let i = 0; i < craterCount; i++) {
                 const x = Math.random() * W;
                 const y = Math.random() * H;
-                const r = 3 + Math.random() * 30;
-                const dark = new THREE.Color(baseColor).multiplyScalar(0.3 + Math.random() * 0.4);
+                const r = 3 + Math.random() * 35;
+                const dark = new THREE.Color(baseColor).multiplyScalar(0.25 + Math.random() * 0.35);
                 const light = new THREE.Color(baseColor).multiplyScalar(0.6 + Math.random() * 0.4);
                 // Shadow
                 ctx.beginPath();
@@ -1478,11 +1480,11 @@
                 ctx.stroke();
             }
 
-            // Add some noise
+            // Add some noise for surface detail
             const imageData = ctx.getImageData(0, 0, W, H);
             const data = imageData.data;
             for (let i = 0; i < data.length; i += 4) {
-                const n = (Math.random() - 0.5) * 20;
+                const n = (Math.random() - 0.5) * 25;
                 data[i] = Math.min(255, Math.max(0, data[i] + n));
                 data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + n));
                 data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + n));
@@ -1501,15 +1503,17 @@
 
         // Function to create a moon
         function createMoon(name, parentPlanet, radius, orbitRadius, color, speedMultiplier = 1.0, tilt = 0) {
-            const tex = createMoonTexture(color, 60 + Math.floor(Math.random() * 40));
+            const tex = createMoonTexture(color, 100 + Math.floor(Math.random() * 60));
             const mat = new THREE.MeshStandardMaterial({
                 map: tex,
-                roughness: 0.8,
-                metalness: 0.1,
+                roughness: 0.75,
+                metalness: 0.05,
                 emissive: new THREE.Color(0x222222),
                 emissiveIntensity: 0.05,
+                bumpMap: tex, // reuse texture as bump for 3D effect
+                bumpScale: 0.03,
             });
-            const geom = new THREE.SphereGeometry(radius, 64, 64);
+            const geom = new THREE.SphereGeometry(radius, 80, 80);
             const mesh = new THREE.Mesh(geom, mat);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -1613,10 +1617,11 @@
         }
 
         // ----- ADD MOONS TO PLANETS -----
-        // Earth: Moon
+        // Earth: Moon (Luna) – larger and more prominent
         const earthPlanet = planets.earth;
         if (earthPlanet) {
-            createMoon('Moon', earthPlanet, 1.0, 6.0, '#cccccc', 1.2);
+            // Moon radius 1.5 (Earth is 4.0), orbit 8.0 to make it clearly visible
+            createMoon('Moon', earthPlanet, 1.5, 8.0, '#cccccc', 1.2, 0.05);
         }
 
         // Mars: Phobos and Deimos
@@ -1802,6 +1807,8 @@
                     Math.sin(angle) * 0.8
                 ).normalize();
                 if (earthUniforms) earthUniforms.sunDirection.value.copy(sunDir);
+
+                // Set controls target to Earth
                 if (earthMesh) {
                     const ep = earthMesh.position.clone();
                     controls.target.copy(ep);
@@ -1907,7 +1914,7 @@
                 rogue.mesh.material.emissiveIntensity = 0.6 + pulse * 0.5;
             }
 
-            // ----- UPDATE MOONS -----
+            // ----- UPDATE MOONS (including Earth's Moon) -----
             for (const moon of moons) {
                 const parent = moon.parentPlanet;
                 if (!parent || !parent.mesh) continue;
@@ -1916,7 +1923,9 @@
                 const x = pPos.x + moon.orbitRadius * Math.cos(moon.angle);
                 const z = pPos.z + moon.orbitRadius * Math.sin(moon.angle);
                 moon.mesh.position.set(x, 0, z);
-                moon.mesh.rotation.y += delta * 0.1;
+                // Self-rotation
+                moon.mesh.rotation.y += delta * 0.08;
+                // Slight axial tilt for realism (already set in creation)
             }
 
             // ----- UPDATE SATELLITES -----
@@ -1987,7 +1996,7 @@
                 `;
         });
 
-        console.log('🌕 Solar System with HD Moons and Satellites – Earth\'s Moon included!');
+        console.log('🌕 Solar System with HD Moons – Earth\'s Moon (Luna) is now prominent and HD!');
         console.log('🌍 Click "Earth" or press E to zoom to Earth.');
     </script>
 </body>
